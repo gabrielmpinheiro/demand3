@@ -1,0 +1,55 @@
+services:
+  app:
+    build:
+      args:
+        user: laravel
+        uid: 1000
+      context: .
+      dockerfile: Dockerfile
+    image: demand3-app
+    container_name: demand3-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+    networks:
+      - demand3-network
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: demand3-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-demand3}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_USER: ${DB_USERNAME:-demand3}
+    volumes:
+      - demand3-db-data:/var/lib/mysql
+    networks:
+      - demand3-network
+    ports:
+      - "3306:3306"
+
+  nginx:
+    image: nginx:alpine
+    container_name: demand3-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx:/etc/nginx/conf.d
+    networks:
+      - demand3-network
+    depends_on:
+      - app
+
+networks:
+  demand3-network:
+    driver: bridge
+
+volumes:
+  demand3-db-data:
