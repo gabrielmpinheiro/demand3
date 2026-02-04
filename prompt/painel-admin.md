@@ -5,6 +5,7 @@
  O painel do administrador será composto pelas seguintes funcionalidades:
  - Login:
     - Será a primeira tela visível para o usuário
+    - A tela deverá ter um design no desktop com um formulario de login à direita e o logo do SiteCare à esquerda. No mobile, o formulario de login deverá ser a segunda coisa visível e o logo do SiteCare deverá ser a primeira coisa visível.
     - Irá validar as credenciais do usuário com a API REST
     - Irá redirecionar o usuário para o dashboard
     - Deve ter uma função "esqueci a senha" que irá enviar um email para o usuário com um link para redefinir a senha.
@@ -51,4 +52,3 @@
     - Notificações: Permitirá visualizar as notificações do sistema, e poderá marcar como lida ou não lida, e uma visão geral da notificação (cliente, demanda, status, etc)
     - Vault: Permitirá as ações básicas de CRUD, mas também uma visão geral do vault e suas demandas. 
 
-    
