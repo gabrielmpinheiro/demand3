@@ -7,45 +7,52 @@ export default function Login() {
     const emailRef = useRef();
     const passwordRef = useRef();
     const [errors, setErrors] = useState(null);
+    const [loading, setLoading] = useState(false);
     const { setToken, setUser } = useStateContext();
 
     const onSubmit = (ev) => {
         ev.preventDefault();
+        setErrors(null);
+        setLoading(true);
+
         const payload = {
             email: emailRef.current.value,
             password: passwordRef.current.value,
         };
 
-        // Simulating login for now as API might not be fully ready or CORS issues
-        // Remove this mock code when connecting to real API
-        /*
         axiosClient.post('/auth/login', payload)
-          .then(({data}) => {
-            setUser(data.user);
-            setToken(data.token);
-          })
-          .catch(err => {
-            const response = err.response;
-            if (response && response.status === 422) {
-                setErrors(response.data.errors);
-            }
-          });
-        */
-
-        // MOCK LOGIN FOR DEVELOPMENT
-        if (payload.email === 'admin@admin.com' && payload.password === 'password') {
-            setUser({ name: 'Admin User', email: 'admin@admin.com' });
-            setToken('mock_token_12345');
-        } else {
-            setErrors({ email: ['Credenciais inválidas'] });
-        }
-
+            .then(({ data }) => {
+                setUser(data.data.user);
+                setToken(data.data.token);
+            })
+            .catch(err => {
+                const response = err.response;
+                if (response && response.status === 422) {
+                    setErrors(response.data.errors);
+                } else if (response && response.status === 401) {
+                    setErrors({ email: ['Credenciais inválidas'] });
+                } else {
+                    setErrors({ email: ['Erro ao conectar com o servidor'] });
+                }
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     };
 
     return (
         <div className="bg-white shadow-md rounded-lg p-8">
             <div className="mb-6 text-center">
-                <h2 className="text-2xl font-bold text-gray-800">Login</h2>
+                <img
+                    src="/logo.png"
+                    alt="Demand3"
+                    className="h-16 mx-auto mb-4"
+                    onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                    }}
+                />
+                <h2 className="text-2xl font-bold text-gray-800" style={{ display: 'none' }}>Demand3</h2>
                 <p className="text-gray-500">Acesse sua conta</p>
             </div>
 
@@ -75,8 +82,12 @@ export default function Login() {
                     />
                 </div>
                 <div className="flex items-center justify-between">
-                    <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-200" type="submit">
-                        Entrar
+                    <button
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        type="submit"
+                        disabled={loading}
+                    >
+                        {loading ? 'Entrando...' : 'Entrar'}
                     </button>
                 </div>
             </form>

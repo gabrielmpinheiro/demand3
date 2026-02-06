@@ -22,15 +22,45 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
+        $logPath = storage_path('logs/personal-logs');
+        if (!file_exists($logPath)) {
+            mkdir($logPath, 0777, true);
+        }
+        $logFile = $logPath . '/login-logs.log';
+        $timestamp = now()->toDateTimeString();
+        $email = $validated['email'];
+
+        $log = "[$timestamp] Tentativa de login para: $email\n";
+
         $user = User::where('email', $validated['email'])->first();
 
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (!$user) {
+            $log .= "[$timestamp] ERRO: Usuário não encontrado no banco de dados.\n";
+            file_put_contents($logFile, $log, FILE_APPEND);
+
             throw ValidationException::withMessages([
                 'email' => ['As credenciais fornecidas estão incorretas.'],
             ]);
         }
 
+        $log .= "[$timestamp] Usuário encontrado (ID: {$user->id}, Role: {$user->role}, Status: {$user->status}).\n";
+        $log .= "[$timestamp] Hash da senha no banco: {$user->password}\n";
+
+        if (!Hash::check($validated['password'], $user->password)) {
+            $log .= "[$timestamp] ERRO: Senha incorreta.\n";
+            file_put_contents($logFile, $log, FILE_APPEND);
+
+            throw ValidationException::withMessages([
+                'email' => ['As credenciais fornecidas estão incorretas.'],
+            ]);
+        }
+
+        $log .= "[$timestamp] Senha correta.\n";
+
         if ($user->status !== 'ativo') {
+            $log .= "[$timestamp] ERRO: Usuário com status '{$user->status}'.\n";
+            file_put_contents($logFile, $log, FILE_APPEND);
+
             throw ValidationException::withMessages([
                 'email' => ['Esta conta está desativada.'],
             ]);
@@ -41,6 +71,9 @@ class AuthController extends Controller
 
         // Cria novo token
         $token = $user->createToken('api-token')->plainTextToken;
+
+        $log .= "[$timestamp] SUCESSO: Login realizado, token gerado.\n----------------------------------------\n";
+        file_put_contents($logFile, $log, FILE_APPEND);
 
         return response()->json([
             'message' => 'Login realizado com sucesso',
