@@ -69,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Pagamentos
     Route::apiResource('pagamentos', PagamentoController::class);
     Route::post('pagamentos/{pagamento}/marcar-pago', [PagamentoController::class, 'marcarPago']);
+    Route::post('pagamentos/{pagamento}/cancelar', [PagamentoController::class, 'cancelar']);
     Route::post('pagamentos/gerar-fatura', [PagamentoController::class, 'gerarFaturaMensal']);
 
     // Suporte
