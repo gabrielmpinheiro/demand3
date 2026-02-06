@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\PagamentoController;
 use App\Http\Controllers\Api\SuporteController;
 use App\Http\Controllers\Api\NotificacaoController;
 use App\Http\Controllers\Api\VaultController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -42,6 +43,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
         Route::put('/password', [AuthController::class, 'updatePassword']);
     });
+
+    // Users (Admin management)
+    Route::apiResource('users', UserController::class);
 
     // Clientes
     Route::apiResource('clientes', ClienteController::class);
