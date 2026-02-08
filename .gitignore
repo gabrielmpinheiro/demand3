@@ -3,6 +3,7 @@
 /public/build
 /public/hot
 /public/storage
+/prompt
 /storage/*.key
 /storage/framework/cache/data/*
 /storage/framework/sessions/*
