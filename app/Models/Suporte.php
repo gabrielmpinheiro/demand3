@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Suporte extends Model
 {
@@ -13,7 +14,6 @@ class Suporte extends Model
 
     protected $fillable = [
         'cliente_id',
-        'demanda_id',
         'mensagem',
         'status',
     ];
@@ -29,9 +29,9 @@ class Suporte extends Model
         return $this->belongsTo(Cliente::class);
     }
 
-    public function demanda(): BelongsTo
+    public function demandas(): HasMany
     {
-        return $this->belongsTo(Demanda::class);
+        return $this->hasMany(Demanda::class);
     }
 
     public function scopeAberto($query)

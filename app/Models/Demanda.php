@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Demanda extends Model
 {
@@ -16,6 +15,7 @@ class Demanda extends Model
     protected $fillable = [
         'dominio_id',
         'assinatura_id',
+        'suporte_id',
         'titulo',
         'descricao',
         'status',
@@ -45,9 +45,9 @@ class Demanda extends Model
         return $this->belongsTo(Assinatura::class);
     }
 
-    public function suporte(): HasOne
+    public function suporte(): BelongsTo
     {
-        return $this->hasOne(Suporte::class);
+        return $this->belongsTo(Suporte::class);
     }
 
     public function notificacoes(): HasMany
@@ -63,6 +63,11 @@ class Demanda extends Model
     public function scopeEmAndamento($query)
     {
         return $query->where('status', 'em_andamento');
+    }
+
+    public function scopeEmAprovacao($query)
+    {
+        return $query->where('status', 'em_aprovacao');
     }
 
     public function scopeConcluido($query)

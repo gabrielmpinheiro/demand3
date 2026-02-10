@@ -1,0 +1,8 @@
+[2026-02-09 18:21:11] [INFO] Suporte criado com sucesso {"id":1}
+[2026-02-09 18:22:15] [INFO] Suporte criado com sucesso {"id":1}
+[2026-02-09 18:22:16] [INFO] Suporte atualizado com sucesso {"id":1}
+[2026-02-09 18:22:16] [INFO] Suporte excluído com sucesso {"id":1}
+[2026-02-09 18:22:16] [WARNING] Tentativa de excluir suporte com demandas pendentes {"id":1}
+[2026-02-09 18:22:16] [INFO] Suporte excluído com sucesso {"id":1}
+[2026-02-09 18:35:12] [INFO] Suporte criado com sucesso {"id":1}
+[2026-02-09 18:36:03] [INFO] Suporte criado com sucesso {"id":2}

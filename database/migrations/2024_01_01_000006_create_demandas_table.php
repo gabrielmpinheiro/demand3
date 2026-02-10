@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->foreignId('assinatura_id')->nullable()->constrained('assinaturas')->onDelete('set null');
             $table->string('titulo');
             $table->text('descricao')->nullable();
-            $table->enum('status', ['pendente', 'em_andamento', 'concluido', 'cancelado'])->default('pendente');
+            $table->enum('status', ['pendente', 'em_andamento', 'em_aprovacao', 'concluido', 'cancelado'])->default('pendente');
             $table->decimal('quantidade_horas_tecnicas', 8, 2)->default(0);
             $table->decimal('valor', 10, 2)->default(0);
             $table->decimal('valor_excedente', 10, 2)->default(0);
