@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\PagamentoController;
 use App\Http\Controllers\Api\SuporteController;
 use App\Http\Controllers\Api\NotificacaoController;
 use App\Http\Controllers\Api\VaultController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +37,9 @@ Route::prefix('auth')->group(function () {
 
 // Rotas protegidas por autenticação
 Route::middleware('auth:sanctum')->group(function () {
+
+    // Dashboard
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 
     // Auth
     Route::prefix('auth')->group(function () {
