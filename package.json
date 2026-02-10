@@ -19,6 +19,7 @@
         "vite": "^5.0.0"
     },
     "dependencies": {
-        "@hello-pangea/dnd": "^18.0.1"
+        "@hello-pangea/dnd": "^18.0.1",
+        "react-toastify": "^11.0.5"
     }
 }

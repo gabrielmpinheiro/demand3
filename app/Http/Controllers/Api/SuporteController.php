@@ -47,6 +47,14 @@ class SuporteController extends Controller
 
             $this->log('INFO', 'Suporte criado com sucesso', ['id' => $suporte->id]);
 
+            \App\Models\Notificacao::notificarAdmins(
+                'Novo Suporte',
+                "Um novo suporte foi aberto pelo cliente {$suporte->cliente->nome}",
+                null,
+                $suporte->cliente_id,
+                'info'
+            );
+
             return response()->json([
                 'message' => 'Suporte criado com sucesso',
                 'data' => $suporte->load(['cliente', 'demandas']),
@@ -73,9 +81,20 @@ class SuporteController extends Controller
                 'status' => 'nullable|in:aberto,em_andamento,concluido,cancelado',
             ]);
 
+            $statusAnterior = $suporte->status;
             $suporte->update($validated);
 
             $this->log('INFO', 'Suporte atualizado com sucesso', ['id' => $suporte->id]);
+
+            if ($request->has('status') && $request->status === 'concluido' && $statusAnterior !== 'concluido') {
+                \App\Models\Notificacao::notificarAdmins(
+                    'Suporte Concluído',
+                    "O suporte #{$suporte->id} do cliente {$suporte->cliente->nome} foi concluído",
+                    null,
+                    $suporte->cliente_id,
+                    'info'
+                );
+            }
 
             return response()->json([
                 'message' => 'Suporte atualizado com sucesso',

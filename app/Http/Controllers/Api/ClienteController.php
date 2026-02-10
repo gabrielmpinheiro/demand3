@@ -85,6 +85,14 @@ class ClienteController extends Controller
                 'email' => $cliente->email
             ], 'Cliente criado com sucesso');
 
+            \App\Models\Notificacao::notificarAdmins(
+                'Novo Cliente',
+                "O cliente {$cliente->nome} foi cadastrado no sistema",
+                null,
+                $cliente->id,
+                'info'
+            );
+
             return response()->json([
                 'message' => 'Cliente criado com sucesso',
                 'data' => $cliente->load(['dominios', 'assinaturas.plano']),

@@ -188,6 +188,16 @@ class PagamentoController extends Controller
                 'status_novo' => $pagamento->status
             ], 'Pagamento atualizado com sucesso');
 
+            if ($pagamento->status === 'pago' && $statusAnterior !== 'pago') {
+                \App\Models\Notificacao::notificarAdmins(
+                    'Pagamento Confirmado',
+                    "O pagamento #{$pagamento->id} do cliente {$pagamento->cliente->nome} foi confirmado",
+                    null,
+                    $pagamento->cliente_id,
+                    'pagamento'
+                );
+            }
+
             return response()->json([
                 'message' => 'Pagamento atualizado com sucesso',
                 'data' => $pagamento->fresh()->load(['cliente', 'assinatura.plano']),
@@ -308,6 +318,14 @@ class PagamentoController extends Controller
                 'id' => $pagamento->id,
                 'valor' => $pagamento->valor
             ], 'Pagamento marcado como pago');
+
+            \App\Models\Notificacao::notificarAdmins(
+                'Pagamento Confirmado',
+                "O pagamento #{$pagamento->id} do cliente {$pagamento->cliente->nome} foi confirmado",
+                null,
+                $pagamento->cliente_id,
+                'pagamento'
+            );
 
             return response()->json([
                 'message' => 'Pagamento marcado como pago',

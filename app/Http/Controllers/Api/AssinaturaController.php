@@ -104,6 +104,14 @@ class AssinaturaController extends Controller
                 'plano_id' => $assinatura->plano_id
             ], 'Assinatura criada com sucesso');
 
+            \App\Models\Notificacao::notificarAdmins(
+                'Nova Assinatura',
+                "Uma nova assinatura do plano {$assinatura->plano->nome} foi criada para o cliente {$assinatura->cliente->nome}",
+                null,
+                $assinatura->cliente_id,
+                'info'
+            );
+
             return response()->json([
                 'message' => 'Assinatura criada com sucesso',
                 'data' => $assinatura->load(['cliente', 'dominio', 'plano']),
