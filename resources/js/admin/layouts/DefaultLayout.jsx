@@ -7,10 +7,6 @@ export default function DefaultLayout() {
     const { user, token, setUser, setToken, notificationCount, setNotificationCount } = useStateContext();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    if (!token) {
-        return <Navigate to="/admpanel/login" />;
-    }
-
     const onLogout = (ev) => {
         ev.preventDefault();
         axiosClient.post('/auth/logout')
@@ -21,6 +17,21 @@ export default function DefaultLayout() {
     }
 
     useEffect(() => {
+        if (token && !user.name) {
+            axiosClient.get('/auth/user')
+                .then(({ data }) => {
+                    setUser(data);
+                })
+                .catch(err => {
+                    if (err.response && err.response.status === 401) {
+                        setUser({});
+                        setToken(null);
+                    }
+                });
+        }
+    }, [token]);
+
+    useEffect(() => {
         if (token) {
             axiosClient.get('/notificacoes?lida=0&per_page=1')
                 .then(({ data }) => {
@@ -29,9 +40,18 @@ export default function DefaultLayout() {
                 })
                 .catch(err => {
                     console.error("Error fetching notifications count", err);
+                    if (err.response && err.response.status === 401) {
+                        setUser({});
+                        setToken(null);
+                    }
                 });
         }
     }, [token])
+
+
+    if (!token) {
+        return <Navigate to="/admpanel/login" />;
+    }
 
     return (
         <div id="defaultLayout" className="flex min-h-screen bg-gray-100 font-sans relative">

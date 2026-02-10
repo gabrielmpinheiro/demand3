@@ -14,6 +14,7 @@ class Suporte extends Model
 
     protected $fillable = [
         'cliente_id',
+        'dominio_id',
         'mensagem',
         'status',
     ];
@@ -32,6 +33,11 @@ class Suporte extends Model
     public function demandas(): HasMany
     {
         return $this->hasMany(Demanda::class);
+    }
+
+    public function dominio(): BelongsTo
+    {
+        return $this->belongsTo(Dominio::class);
     }
 
     public function scopeAberto($query)

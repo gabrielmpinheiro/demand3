@@ -13,12 +13,15 @@ class NotificacaoController extends Controller
     {
         $query = Notificacao::query();
 
-        if ($request->has('cliente_id')) {
-            $query->where('cliente_id', $request->cliente_id);
+        // Se não for passado user_id, filtra pelo usuário autenticado por padrão
+        if (!$request->has('user_id') && auth()->check()) {
+            $query->where('user_id', auth()->id());
+        } elseif ($request->has('user_id')) {
+            $query->where('user_id', $request->user_id);
         }
 
-        if ($request->has('user_id')) {
-            $query->where('user_id', $request->user_id);
+        if ($request->has('cliente_id')) {
+            $query->where('cliente_id', $request->cliente_id);
         }
 
         if ($request->has('tipo')) {
@@ -87,10 +90,27 @@ class NotificacaoController extends Controller
 
     public function destroy(Notificacao $notificacao): JsonResponse
     {
-        $notificacao->delete();
+        $notificacao->forceDelete();
 
         return response()->json([
             'message' => 'Notificação excluída com sucesso',
+        ]);
+    }
+
+    /**
+     * Exclui múltiplas notificações
+     */
+    public function excluirMultiplas(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:notificacoes,id',
+        ]);
+
+        Notificacao::whereIn('id', $validated['ids'])->forceDelete();
+
+        return response()->json([
+            'message' => 'Notificações excluídas com sucesso',
         ]);
     }
 
@@ -112,11 +132,9 @@ class NotificacaoController extends Controller
      */
     public function marcarTodasLidas(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
+        $userId = $request->input('user_id', auth()->id());
 
-        Notificacao::where('user_id', $validated['user_id'])
+        Notificacao::where('user_id', $userId)
             ->where('lida', false)
             ->update(['lida' => true]);
 

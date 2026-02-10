@@ -4,10 +4,12 @@ import axiosClient from "../axios-client";
 export default function SuporteModal({ isOpen, onClose, onSave, suporte }) {
     const [formData, setFormData] = useState({
         cliente_id: '',
+        dominio_id: '',
         mensagem: '',
         status: 'aberto',
     });
     const [clients, setClients] = useState([]);
+    const [domains, setDomains] = useState([]);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
 
@@ -22,16 +24,34 @@ export default function SuporteModal({ isOpen, onClose, onSave, suporte }) {
             });
     }, []);
 
+    // Fetch domains when client changes
+    useEffect(() => {
+        if (formData.cliente_id) {
+            axiosClient.get(`/dominios?cliente_id=${formData.cliente_id}`)
+                .then(({ data }) => {
+                    setDomains(data.data);
+                })
+                .catch(err => {
+                    console.error("Erro ao buscar domínios:", err);
+                    setDomains([]);
+                });
+        } else {
+            setDomains([]);
+        }
+    }, [formData.cliente_id]);
+
     useEffect(() => {
         if (suporte) {
             setFormData({
                 cliente_id: suporte.cliente_id || '',
+                dominio_id: suporte.dominio_id || '',
                 mensagem: suporte.mensagem || '',
                 status: suporte.status || 'aberto',
             });
         } else {
             setFormData({
                 cliente_id: '',
+                dominio_id: '',
                 mensagem: '',
                 status: 'aberto',
             });
@@ -41,10 +61,14 @@ export default function SuporteModal({ isOpen, onClose, onSave, suporte }) {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => {
+            const updated = { ...prev, [name]: value };
+            // Reset dominio_id when client changes
+            if (name === 'cliente_id') {
+                updated.dominio_id = '';
+            }
+            return updated;
+        });
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
         }
@@ -128,6 +152,32 @@ export default function SuporteModal({ isOpen, onClose, onSave, suporte }) {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Domínio
+                        </label>
+                        <select
+                            name="dominio_id"
+                            value={formData.dominio_id}
+                            onChange={handleChange}
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.dominio_id ? 'border-red-500' : 'border-gray-300'}`}
+                            disabled={loading || !formData.cliente_id}
+                        >
+                            <option value="">Selecione um domínio</option>
+                            {domains.map(domain => (
+                                <option key={domain.id} value={domain.id}>
+                                    {domain.nome}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.dominio_id && (
+                            <p className="text-red-500 text-xs mt-1">{errors.dominio_id}</p>
+                        )}
+                        {formData.cliente_id && domains.length === 0 && (
+                            <p className="text-gray-400 text-xs mt-1">Nenhum domínio encontrado para este cliente.</p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                             Mensagem *
                         </label>
                         <textarea
@@ -190,3 +240,4 @@ export default function SuporteModal({ isOpen, onClose, onSave, suporte }) {
         </div>
     );
 }
+

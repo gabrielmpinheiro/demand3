@@ -27,7 +27,8 @@ class SuporteController extends Controller
             $query->where('status', $request->status);
         }
 
-        $suportes = $query->with(['cliente', 'demandas'])
+        $suportes = $query->with(['cliente', 'demandas', 'dominio'])
+            ->withCount('demandas')
             ->orderBy('created_at', 'desc')
             ->paginate($request->get('per_page', 15));
 
@@ -39,6 +40,7 @@ class SuporteController extends Controller
         try {
             $validated = $request->validate([
                 'cliente_id' => 'required|exists:clientes,id',
+                'dominio_id' => 'nullable|exists:dominios,id',
                 'mensagem' => 'nullable|string',
                 'status' => 'nullable|in:aberto,em_andamento,concluido,cancelado',
             ]);
@@ -57,7 +59,7 @@ class SuporteController extends Controller
 
             return response()->json([
                 'message' => 'Suporte criado com sucesso',
-                'data' => $suporte->load(['cliente', 'demandas']),
+                'data' => $suporte->load(['cliente', 'demandas', 'dominio']),
             ], 201);
         } catch (\Exception $e) {
             $this->log('ERROR', 'Erro ao criar suporte', ['error' => $e->getMessage()]);
@@ -77,6 +79,7 @@ class SuporteController extends Controller
         try {
             $validated = $request->validate([
                 'cliente_id' => 'sometimes|required|exists:clientes,id',
+                'dominio_id' => 'nullable|exists:dominios,id',
                 'mensagem' => 'nullable|string',
                 'status' => 'nullable|in:aberto,em_andamento,concluido,cancelado',
             ]);
@@ -98,7 +101,7 @@ class SuporteController extends Controller
 
             return response()->json([
                 'message' => 'Suporte atualizado com sucesso',
-                'data' => $suporte->fresh()->load(['cliente', 'demandas']),
+                'data' => $suporte->fresh()->load(['cliente', 'demandas', 'dominio']),
             ]);
         } catch (\Exception $e) {
             $this->log('ERROR', 'Erro ao atualizar suporte', ['id' => $suporte->id, 'error' => $e->getMessage()]);

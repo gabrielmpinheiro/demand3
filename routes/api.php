@@ -79,6 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('notificacoes', NotificacaoController::class);
     Route::post('notificacoes/{notificacao}/marcar-lida', [NotificacaoController::class, 'marcarLida']);
     Route::post('notificacoes/marcar-todas-lidas', [NotificacaoController::class, 'marcarTodasLidas']);
+    Route::post('notificacoes/excluir-multiplas', [NotificacaoController::class, 'excluirMultiplas']);
 
     // Vault (Cofre de senhas)
     Route::apiResource('vault', VaultController::class);

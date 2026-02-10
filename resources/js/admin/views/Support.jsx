@@ -100,20 +100,13 @@ export default function Support() {
             }
         },
         {
-            key: 'demandas',
+            key: 'demandas_count',
             label: 'Demandas',
-            render: (val, row) => {
-                if (!val || val.length === 0) return (
-                    <span className="text-gray-400 text-xs">Nenhuma</span>
-                );
+            render: (val) => {
                 return (
-                    <div className="flex gap-1 flex-wrap">
-                        {val.map(d => (
-                            <span key={d.id} title={d.status} className="px-1.5 py-0.5 rounded text-xs bg-gray-100 border border-gray-300">
-                                #{d.id}
-                            </span>
-                        ))}
-                    </div>
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${val > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-500'}`}>
+                        {val || 0}
+                    </span>
                 );
             }
         },
@@ -170,6 +163,7 @@ export default function Support() {
                 onSave={handleSaveDemand}
                 suporteId={currentTicket?.id}
                 clienteId={currentTicket?.cliente_id}
+                dominioId={currentTicket?.dominio_id}
             />
         </div>
     );

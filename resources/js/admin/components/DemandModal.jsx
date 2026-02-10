@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axiosClient from "../axios-client";
 
-export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId, clienteId }) {
+export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId, clienteId, dominioId }) {
     const [formData, setFormData] = useState({
         dominio_id: '',
         titulo: '',
@@ -39,7 +39,7 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
             });
         } else {
             setFormData({
-                dominio_id: '',
+                dominio_id: dominioId || '',
                 titulo: '',
                 descricao: '',
                 quantidade_horas_tecnicas: 1,
