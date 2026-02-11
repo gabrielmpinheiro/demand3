@@ -10,3 +10,5 @@
 [2026-02-09 21:31:22] [INFO] Demanda atualizada com sucesso {"id":2,"changes":{"status":"pendente"}}
 [2026-02-09 21:31:22] [INFO] Demanda atualizada com sucesso {"id":1,"changes":{"status":"pendente"}}
 [2026-02-09 22:38:23] [INFO] Demanda criada com sucesso {"id":4,"titulo":"Corre\u00e7\u00f5es no Demand"}
+[2026-02-10 13:46:29] [INFO] Demanda atualizada com sucesso {"id":4,"changes":{"status":"em_andamento"}}
+[2026-02-10 13:46:34] [INFO] Demanda atualizada com sucesso {"id":4,"changes":{"status":"em_aprovacao"}}
