@@ -92,7 +92,7 @@ class Demanda extends Model
         if (!$assinatura) {
             // Sem plano ativo: cobra valor integral (R$ 100/h)
             $valorHora = Plano::valorHoraSemPlano();
-            $this->valor = $horas * $valorHora;
+            $this->valor = round($horas * $valorHora, 2);
             $this->valor_excedente = 0;
             return;
         }
@@ -105,8 +105,8 @@ class Demanda extends Model
 
         if ($excedente > 0) {
             // Cobra apenas o excedente
-            $this->valor_excedente = $excedente * $valorHora;
-            $this->valor = ($horas - $excedente) * 0 + $this->valor_excedente; // Horas do plano são "grátis"
+            $this->valor_excedente = round($excedente * $valorHora, 2);
+            $this->valor = round(($horas - $excedente) * 0 + $this->valor_excedente, 2); // Horas do plano são "grátis"
         } else {
             // Todas as horas cobertas pelo plano
             $this->valor = 0;

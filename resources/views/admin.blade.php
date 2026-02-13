@@ -11,6 +11,7 @@
 </head>
 
 <body class="bg-gray-50 text-gray-900 font-sans antialiased">
+    <!-- Modelo base do admin -->
     <div id="admin-root"></div>
 </body>
 

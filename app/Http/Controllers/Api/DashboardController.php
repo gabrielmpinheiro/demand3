@@ -72,13 +72,13 @@ class DashboardController extends Controller
             ->orderBy('data_vencimento', 'asc')
             ->get()
             ->map(function ($p) {
-                $diasAtraso = Carbon::parse($p->data_vencimento)->diffInDays(Carbon::now());
+                $diasAtraso = round(Carbon::parse($p->data_vencimento)->floatDiffInDays(Carbon::now()), 2);
                 return [
                     'id' => $p->id,
                     'cliente' => $p->cliente->nome ?? 'N/A',
                     'plano' => $p->assinatura->plano->nome ?? 'N/A',
                     'dominio' => $p->assinatura->dominio->nome ?? 'N/A',
-                    'valor' => $p->valor,
+                    'valor' => round((float) $p->valor, 2),
                     'data_vencimento' => Carbon::parse($p->data_vencimento)->format('d/m/Y'),
                     'dias_atraso' => $diasAtraso,
                     'referencia_mes' => $p->referencia_mes,
@@ -86,7 +86,7 @@ class DashboardController extends Controller
             });
 
         return response()->json([
-            'faturamento' => (float) $faturamento,
+            'faturamento' => round((float) $faturamento, 2),
             'demandas_abertas' => $demandasAbertas,
             'clientes_ativos' => $clientesAtivos,
             'assinaturas_ativas' => $assinaturasAtivas,

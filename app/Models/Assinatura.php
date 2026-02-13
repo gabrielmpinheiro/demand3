@@ -69,7 +69,7 @@ class Assinatura extends Model
         $horasDisponiveis = (float) $this->horas_disponiveis;
 
         if ($horasDisponiveis >= $horas) {
-            $this->horas_disponiveis = $horasDisponiveis - $horas;
+            $this->horas_disponiveis = round($horasDisponiveis - $horas, 2);
             $this->save();
             return 0; // sem excedente
         }
