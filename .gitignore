@@ -20,6 +20,7 @@
 .env.backup
 .env.production
 .phpunit.result.cache
+/public/_server_config.php
 Homestead.json
 Homestead.yaml
 auth.json

@@ -1,0 +1,12 @@
+<?php
+/**
+ * Server-specific configuration for Locaweb production environment.
+ *
+ * This file MUST NOT be committed to Git.
+ * It is deployed manually to: /home/storage/d/c3/95/pulodogato1/public_html/demand3/_server_config.php
+ *
+ * It defines the absolute path to the Laravel application core,
+ * since on Locaweb the public folder and the app core are in different directories.
+ */
+
+$_ENV['APP_BASE_PATH'] = '/home/storage/d/c3/95/pulodogato1/demand3';

@@ -1,0 +1,88 @@
+name: Deploy to Locaweb
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ─── Frontend Build ────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      # ─── Backend Dependencies ──────────────────────────────────
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql, bcmath, gd, zip
+          tools: composer:v2
+
+      - name: Install Composer dependencies (production)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      # ─── Deploy Core (app, bootstrap, config, database, etc.) ─
+      - name: Deploy core application via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          source: >-
+            app/,
+            bootstrap/,
+            config/,
+            database/,
+            resources/views/,
+            routes/,
+            storage/,
+            vendor/,
+            artisan,
+            composer.json,
+            composer.lock
+          target: /home/storage/d/c3/95/pulodogato1/demand3
+          overwrite: true
+
+      # ─── Deploy Public (build assets, index.php, .htaccess) ───
+      - name: Deploy public files via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "public/"
+          target: /home/storage/d/c3/95/pulodogato1/public_html/demand3
+          strip_components: 1
+          overwrite: true
+
+      # ─── Post-Deploy Commands ─────────────────────────────────
+      - name: Run migrations and cache config
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /home/storage/d/c3/95/pulodogato1/demand3
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
