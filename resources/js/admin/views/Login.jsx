@@ -44,7 +44,7 @@ export default function Login() {
         <div className="bg-white shadow-md rounded-lg p-8">
             <div className="mb-6 text-center">
                 <img
-                    src="/logo.png"
+                    src="/resources/img/logo.png"
                     alt="Demand3"
                     className="h-16 mx-auto mb-4"
                     onError={(e) => {
