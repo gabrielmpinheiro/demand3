@@ -1,0 +1,2 @@
+[2026-02-18 23:04:42] [ERROR] Erro ao registrar cliente {"error":"SQLSTATE[01000]: Warning: 1265 Data truncated for column 'role' at row 1 (Connection: mysql, Host: db, Port: 3306, Database: demand3, SQL: insert into `users` (`name`, `email`, `password`, `role`, `status`, `updated_at`, `created_at`) values (Teste, teste@teste.com.br, $2y$12$FtGhsh81CFEYWuFQcgovx.PszdcVTMZTPUuK85Nkv2ymBH1prxRY2, cliente, ativo, 2026-02-18 23:04:42, 2026-02-18 23:04:42))"}
+[2026-02-18 23:11:02] [INFO] Novo cliente registrado {"user_id":6,"cliente_id":4}

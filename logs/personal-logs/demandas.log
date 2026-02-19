@@ -13,3 +13,6 @@
 [2026-02-10 13:46:29] [INFO] Demanda atualizada com sucesso {"id":4,"changes":{"status":"em_andamento"}}
 [2026-02-10 13:46:34] [INFO] Demanda atualizada com sucesso {"id":4,"changes":{"status":"em_aprovacao"}}
 [2026-02-18 21:11:12] [INFO] Demanda atualizada com sucesso {"id":1,"changes":{"status":"pendente"}}
+[2026-02-18 23:15:33] [INFO] Demanda criada com sucesso {"id":5,"titulo":"Primeiro card de testes"}
+[2026-02-18 23:16:10] [INFO] Demanda criada com sucesso {"id":6,"titulo":"Testando outra demanda"}
+[2026-02-18 23:16:40] [INFO] Demanda criada com sucesso {"id":7,"titulo":"Mais uma demanda teste"}

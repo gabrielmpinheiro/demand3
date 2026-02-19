@@ -89,3 +89,62 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('vault', VaultController::class);
     Route::get('vault/{vault}/revelar-senha', [VaultController::class, 'revelarSenha']);
 });
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Área do Cliente
+|--------------------------------------------------------------------------
+*/
+
+use App\Http\Controllers\Api\Cliente\ClienteAuthController;
+use App\Http\Controllers\Api\Cliente\ClienteDashboardController;
+use App\Http\Controllers\Api\Cliente\ClienteDominioController;
+use App\Http\Controllers\Api\Cliente\ClienteAssinaturaController;
+use App\Http\Controllers\Api\Cliente\ClientePagamentoController;
+use App\Http\Controllers\Api\Cliente\ClienteSuporteController;
+use App\Http\Controllers\Api\Cliente\ClienteNotificacaoController;
+use App\Http\Controllers\Api\Cliente\ClienteUserController;
+use App\Http\Controllers\Api\Cliente\ClientePlanoController;
+
+// Rotas públicas do cliente
+Route::prefix('client/auth')->group(function () {
+    Route::post('/login', [ClienteAuthController::class, 'login']);
+    Route::post('/register', [ClienteAuthController::class, 'register']);
+});
+
+// Rotas protegidas do cliente
+Route::prefix('client')->middleware(['auth:sanctum', 'ensure.cliente'])->group(function () {
+    // Dashboard
+    Route::get('/dashboard/stats', [ClienteDashboardController::class, 'stats']);
+
+    // Auth
+    Route::post('/auth/logout', [ClienteAuthController::class, 'logout']);
+    Route::get('/auth/user', [ClienteAuthController::class, 'user']);
+    Route::put('/auth/password', [ClienteAuthController::class, 'updatePassword']);
+    Route::put('/auth/profile', [ClienteAuthController::class, 'updateProfile']);
+
+    // Domínios
+    Route::apiResource('dominios', ClienteDominioController::class);
+
+    // Assinaturas
+    Route::apiResource('assinaturas', ClienteAssinaturaController::class)->only(['index', 'store']);
+
+    // Pagamentos (Faturas)
+    Route::get('pagamentos', [ClientePagamentoController::class, 'index']);
+    Route::post('pagamentos/{pagamento}/marcar-pendente', [ClientePagamentoController::class, 'marcarPendente']);
+
+    // Chamados (Suporte)
+    Route::apiResource('suportes', ClienteSuporteController::class);
+
+    // Notificações
+    Route::apiResource('notificacoes', ClienteNotificacaoController::class)->only(['index', 'show']);
+    Route::post('notificacoes/{notificacao}/marcar-lida', [ClienteNotificacaoController::class, 'marcarLida']);
+    Route::post('notificacoes/marcar-todas-lidas', [ClienteNotificacaoController::class, 'marcarTodasLidas']);
+
+    // Sub-usuários
+    Route::apiResource('users', ClienteUserController::class)->only(['index', 'store', 'destroy']);
+
+    // Planos disponíveis
+    Route::get('planos', [ClientePlanoController::class, 'index']);
+});
+

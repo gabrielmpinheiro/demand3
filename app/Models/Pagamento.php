@@ -51,6 +51,11 @@ class Pagamento extends Model
         return $query->where('status', 'pago');
     }
 
+    public function scopePendenteConferencia($query)
+    {
+        return $query->where('status', 'pendente_conferencia');
+    }
+
     public function scopeDoMes($query, string $referenciaMes)
     {
         return $query->where('referencia_mes', $referenciaMes);

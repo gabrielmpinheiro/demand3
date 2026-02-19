@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
 {
@@ -42,9 +43,19 @@ class User extends Authenticatable
         return $this->hasMany(Notificacao::class);
     }
 
+    public function cliente(): HasOne
+    {
+        return $this->hasOne(Cliente::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function isCliente(): bool
+    {
+        return $this->role === 'cliente';
     }
 
     public function scopeAtivo($query)
@@ -55,5 +66,10 @@ class User extends Authenticatable
     public function scopeAdmins($query)
     {
         return $query->where('role', 'admin');
+    }
+
+    public function scopeClientes($query)
+    {
+        return $query->where('role', 'cliente');
     }
 }
