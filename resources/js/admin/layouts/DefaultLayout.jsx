@@ -85,7 +85,7 @@ export default function DefaultLayout() {
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
                 <div className="p-4 font-bold text-xl border-b border-green-800 flex justify-between items-center">
-                    <span>SiteCare Admin</span>
+                    <img src="/logo-b.png" alt="SiteCare Admin" className="h-12" />
                     <button className="md:hidden text-white" onClick={() => setSidebarOpen(false)}>
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>

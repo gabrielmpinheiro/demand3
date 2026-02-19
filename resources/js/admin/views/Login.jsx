@@ -44,7 +44,7 @@ export default function Login() {
         <div className="bg-white shadow-md rounded-lg p-8">
             <div className="mb-6 text-center">
                 <img
-                    src="/resources/img/logo.png"
+                    src="/logo.png"
                     alt="Demand3"
                     className="h-16 mx-auto mb-4"
                     onError={(e) => {
@@ -52,7 +52,7 @@ export default function Login() {
                         e.target.nextSibling.style.display = 'block';
                     }}
                 />
-                <h2 className="text-2xl font-bold text-gray-800" style={{ display: 'none' }}>Demand3</h2>
+                <h2 className="text-2xl font-bold text-gray-800" style={{ display: 'none' }}>SiteCare</h2>
                 <p className="text-gray-500">Acesse sua conta</p>
             </div>
 
