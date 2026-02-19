@@ -72,6 +72,14 @@ class DemandaController extends Controller
                 'demanda'
             );
 
+            // Notifica o cliente sobre a nova demanda
+            Notificacao::notificarCliente(
+                $dominio->cliente_id,
+                "Nova demanda criada: {$demanda->titulo}",
+                "Uma nova demanda foi criada para o domínio {$dominio->nome}.\nHoras: {$demanda->quantidade_horas_tecnicas}h",
+                $demanda->id
+            );
+
             $this->log('INFO', 'Demanda criada com sucesso', ['id' => $demanda->id, 'titulo' => $demanda->titulo]);
 
             return response()->json([
@@ -106,6 +114,8 @@ class DemandaController extends Controller
         ]);
 
         try {
+            $statusAnterior = $demanda->status;
+
             // Se alterou as horas, recalcula o valor
             if (
                 isset($validated['quantidade_horas_tecnicas']) &&
@@ -116,6 +126,25 @@ class DemandaController extends Controller
                 $demanda->save();
             } else {
                 $demanda->update($validated);
+            }
+
+            // Notifica o cliente se o status mudou
+            if (isset($validated['status']) && $validated['status'] !== $statusAnterior) {
+                $dominio = $demanda->dominio;
+                $statusLabels = [
+                    'pendente' => 'Pendente',
+                    'em_andamento' => 'Em Andamento',
+                    'em_aprovacao' => 'Em Aprovação',
+                    'concluido' => 'Concluído',
+                    'cancelado' => 'Cancelado',
+                ];
+                $statusLabel = $statusLabels[$demanda->status] ?? $demanda->status;
+                Notificacao::notificarCliente(
+                    $dominio->cliente_id,
+                    "Demanda atualizada: {$demanda->titulo}",
+                    "O status da demanda foi alterado para: {$statusLabel}",
+                    $demanda->id
+                );
             }
 
             // Check for support auto-completion if status is 'concluido'
@@ -172,6 +201,15 @@ class DemandaController extends Controller
         $demanda->status = 'em_andamento';
         $demanda->save();
 
+        // Notifica o cliente
+        $dominio = $demanda->dominio;
+        Notificacao::notificarCliente(
+            $dominio->cliente_id,
+            "Demanda aprovada: {$demanda->titulo}",
+            "Sua demanda foi aprovada e está em andamento.",
+            $demanda->id
+        );
+
         $this->log('INFO', 'Demanda aprovada', ['id' => $demanda->id]);
 
         return response()->json([
@@ -193,6 +231,15 @@ class DemandaController extends Controller
 
         $demanda->status = 'concluido';
         $demanda->save();
+
+        // Notifica o cliente
+        $dominio = $demanda->dominio;
+        Notificacao::notificarCliente(
+            $dominio->cliente_id,
+            "Demanda concluída: {$demanda->titulo}",
+            "Sua demanda foi concluída com sucesso.",
+            $demanda->id
+        );
 
         // Check for support auto-completion
         if ($demanda->suporte_id) {
@@ -241,6 +288,15 @@ class DemandaController extends Controller
 
         $demanda->status = 'cancelado';
         $demanda->save();
+
+        // Notifica o cliente
+        $dominio = $demanda->dominio;
+        Notificacao::notificarCliente(
+            $dominio->cliente_id,
+            "Demanda cancelada: {$demanda->titulo}",
+            "A demanda foi cancelada.",
+            $demanda->id
+        );
 
         // Estorna as horas se tinham sido descontadas
         if ($demanda->assinatura_id && $demanda->valor == 0) {

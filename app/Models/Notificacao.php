@@ -85,4 +85,19 @@ class Notificacao extends Model
             ]);
         }
     }
+
+    /**
+     * Cria notificação para o cliente (visível na área do cliente)
+     */
+    public static function notificarCliente(int $clienteId, string $titulo, string $mensagem, ?int $demandaId = null, string $tipo = 'demanda'): void
+    {
+        self::create([
+            'cliente_id' => $clienteId,
+            'user_id' => null,
+            'demanda_id' => $demandaId,
+            'tipo' => $tipo,
+            'titulo' => $titulo,
+            'mensagem' => $mensagem,
+        ]);
+    }
 }

@@ -2,6 +2,7 @@ import { Navigate, Outlet, Link, useLocation } from "react-router-dom";
 import { useStateContext } from "../contexts/ContextProvider";
 import { useState, useEffect } from "react";
 import axiosClient from "../axios-client";
+import TicketModal from "../components/TicketModal";
 
 const sidebarColors = {
     indigo: { bg: 'bg-indigo-900', hover: 'hover:bg-indigo-800', border: 'border-indigo-800', accent: 'text-indigo-400' },
@@ -16,9 +17,19 @@ export default function DefaultLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+    const [showNewTicketModal, setShowNewTicketModal] = useState(false);
+    const [ticketDomains, setTicketDomains] = useState([]);
     const location = useLocation();
 
     const colors = sidebarColors[theme.sidebarColor] || sidebarColors.indigo;
+
+    const openNewTicketModal = () => {
+        setSidebarOpen(false);
+        axiosClient.get('/dominios').then(({ data }) => {
+            setTicketDomains(data.data || []);
+        }).catch(() => { });
+        setShowNewTicketModal(true);
+    };
 
     const onLogout = (ev) => {
         ev.preventDefault();
@@ -87,6 +98,7 @@ export default function DefaultLayout() {
         { to: '/subscriptions', label: 'Planos', icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z' },
         { to: '/invoices', label: 'Faturas', icon: 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z' },
         { to: '/tickets', label: 'Chamados', icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z' },
+        { to: '/vault', label: 'Vault', icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' },
         { to: '/notifications', label: 'Notificações', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
         { to: '/profile', label: 'Meu Perfil', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
         { to: '/users', label: 'Usuários', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
@@ -121,14 +133,13 @@ export default function DefaultLayout() {
 
                 {/* New Ticket Button */}
                 <div className="px-4 pt-4">
-                    <Link
-                        to="/tickets"
+                    <button
+                        onClick={openNewTicketModal}
                         className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg text-white font-medium transition-all duration-200 backdrop-blur-sm"
-                        onClick={() => setSidebarOpen(false)}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                         Novo Chamado
-                    </Link>
+                    </button>
                 </div>
 
                 <nav className="mt-4 flex-1 overflow-y-auto pb-20">
@@ -138,8 +149,8 @@ export default function DefaultLayout() {
                             to={item.to}
                             onClick={() => setSidebarOpen(false)}
                             className={`flex items-center gap-3 py-2.5 px-4 transition duration-200 ${isActive(item.to)
-                                    ? 'bg-white bg-opacity-20 border-r-4 border-white'
-                                    : `${colors.hover} opacity-80 hover:opacity-100`
+                                ? 'bg-white bg-opacity-20 border-r-4 border-white'
+                                : `${colors.hover} opacity-80 hover:opacity-100`
                                 }`}
                         >
                             <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,6 +263,17 @@ export default function DefaultLayout() {
                     </button>
                 </div>
             </div>
+
+            {showNewTicketModal && (
+                <TicketModal
+                    isOpen={showNewTicketModal}
+                    onClose={() => setShowNewTicketModal(false)}
+                    onSuccess={() => {
+                        setShowNewTicketModal(false);
+                    }}
+                    domains={ticketDomains}
+                />
+            )}
         </div>
     );
 }

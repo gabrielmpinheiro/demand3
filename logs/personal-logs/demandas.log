@@ -16,3 +16,13 @@
 [2026-02-18 23:15:33] [INFO] Demanda criada com sucesso {"id":5,"titulo":"Primeiro card de testes"}
 [2026-02-18 23:16:10] [INFO] Demanda criada com sucesso {"id":6,"titulo":"Testando outra demanda"}
 [2026-02-18 23:16:40] [INFO] Demanda criada com sucesso {"id":7,"titulo":"Mais uma demanda teste"}
+[2026-02-19 18:33:20] [INFO] Demanda atualizada com sucesso {"id":7,"changes":{"titulo":"Mais uma demanda teste","descricao":"Testando mais uma demanda.","status":"cancelado","quantidade_horas_tecnicas":"1.00"}}
+[2026-02-19 18:33:37] [INFO] Demanda atualizada com sucesso {"id":6,"changes":{"titulo":"Testando outra demanda","descricao":"Fazendo um teste com mais de uma demanda","status":"cancelado","quantidade_horas_tecnicas":"2.00"}}
+[2026-02-19 18:33:48] [INFO] Demanda atualizada com sucesso {"id":4,"changes":{"titulo":"Corre\u00e7\u00f5es no Demand","descricao":"\u00c9 preciso lapidar praticamente todos os m\u00f3dulos. Desde coisas menores como m\u00e1scaras, at\u00e9 mesmo coisas mais pesadas como o quadro kanbam e a parte de pagamentos.","status":"cancelado","quantidade_horas_tecnicas":"6.00"}}
+[2026-02-19 18:34:01] [INFO] Demanda atualizada com sucesso {"id":5,"changes":{"titulo":"Primeiro card de testes","descricao":"Testando o aplicativo 01","status":"cancelado","quantidade_horas_tecnicas":"1.00"}}
+[2026-02-19 18:34:14] [INFO] Demanda atualizada com sucesso {"id":3,"changes":{"titulo":"Cria\u00e7\u00e3o de uma LP","descricao":"Gera\u00e7\u00e3o de uma landing page","status":"cancelado","quantidade_horas_tecnicas":"12.00"}}
+[2026-02-19 18:34:24] [INFO] Demanda atualizada com sucesso {"id":2,"changes":{"titulo":"Teste de demanda","descricao":"Criando uma demanda de testes","status":"cancelado","quantidade_horas_tecnicas":"1.00"}}
+[2026-02-19 18:34:31] [INFO] Demanda atualizada com sucesso {"id":1,"changes":{"titulo":"Modificar p\u00e1gina homepage","descricao":"Precisa modificar a homepage, os detalhes est\u00e3o no anexo","status":"cancelado","quantidade_horas_tecnicas":"2.00"}}
+[2026-02-19 18:52:23] [INFO] Demanda criada com sucesso {"id":8,"titulo":"Troca da identidade"}
+[2026-02-19 18:53:00] [INFO] Demanda criada com sucesso {"id":9,"titulo":"Demanda de teste 01"}
+[2026-02-19 18:53:41] [INFO] Demanda criada com sucesso {"id":10,"titulo":"Demanda de teste 02"}

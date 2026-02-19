@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\NotificacaoController;
 use App\Http\Controllers\Api\VaultController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\Cliente\ClienteVaultController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -146,5 +147,9 @@ Route::prefix('client')->middleware(['auth:sanctum', 'ensure.cliente'])->group(f
 
     // Planos disponíveis
     Route::get('planos', [ClientePlanoController::class, 'index']);
+
+    // Vault (Cofre de senhas)
+    Route::apiResource('vault', ClienteVaultController::class);
+    Route::get('vault/{vault}/revelar-senha', [ClienteVaultController::class, 'revelarSenha']);
 });
 

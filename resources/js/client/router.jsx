@@ -11,6 +11,7 @@ import Tickets from "./views/Tickets";
 import Notifications from "./views/Notifications";
 import Profile from "./views/Profile";
 import SubUsers from "./views/SubUsers";
+import Vault from "./views/Vault";
 
 const router = createBrowserRouter([
     {
@@ -52,6 +53,10 @@ const router = createBrowserRouter([
             {
                 path: '/users',
                 element: <SubUsers />
+            },
+            {
+                path: '/vault',
+                element: <Vault />
             }
         ]
     },

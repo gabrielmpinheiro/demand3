@@ -3,6 +3,7 @@ import { useStateContext } from "../contexts/ContextProvider";
 import axiosClient from "../axios-client";
 
 import TicketModal from "../components/TicketModal";
+import TicketDetailModal from "../components/TicketDetailModal";
 
 export default function Tickets() {
     const { theme } = useStateContext();
@@ -10,6 +11,7 @@ export default function Tickets() {
     const [domains, setDomains] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [selectedTicketId, setSelectedTicketId] = useState(null);
     const [filter, setFilter] = useState('');
     const isDark = theme.mode === 'dark';
     const card = `${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm border`;
@@ -60,7 +62,11 @@ export default function Tickets() {
             ) : (
                 <div className="space-y-3">
                     {tickets.map(t => (
-                        <div key={t.id} className={`${card} p-5 hover:shadow-md transition-all`}>
+                        <div
+                            key={t.id}
+                            className={`${card} p-5 hover:shadow-md transition-all cursor-pointer`}
+                            onClick={() => setSelectedTicketId(t.id)}
+                        >
                             <div className="flex flex-col sm:flex-row justify-between gap-3">
                                 <div className="flex-1 min-w-0">
                                     <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{t.mensagem}</p>
@@ -71,6 +77,7 @@ export default function Tickets() {
                                 <div className="flex items-center gap-3">
                                     {t.demandas_count > 0 && <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t.demandas_count} demanda(s)</span>}
                                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor(t.status)}`}>{t.status}</span>
+                                    <svg className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
                                 </div>
                             </div>
                         </div>
@@ -84,9 +91,16 @@ export default function Tickets() {
                     onClose={() => setShowModal(false)}
                     onSuccess={() => {
                         fetchTickets();
-                        // Optional: show success message
                     }}
                     domains={domains}
+                />
+            )}
+
+            {selectedTicketId && (
+                <TicketDetailModal
+                    isOpen={!!selectedTicketId}
+                    onClose={() => setSelectedTicketId(null)}
+                    ticketId={selectedTicketId}
                 />
             )}
         </div>

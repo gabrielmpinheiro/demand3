@@ -1,0 +1,9 @@
+[2026-02-19 15:17:31] Tentativa de login cliente: teste@teste.com.br
+[2026-02-19 15:17:31] ERRO: Usuário não encontrado.
+[2026-02-19 15:17:48] Tentativa de login cliente: teste@teste.com
+[2026-02-19 15:17:48] ERRO: Senha incorreta.
+[2026-02-19 15:18:23] Tentativa de login cliente: teste@teste.com
+[2026-02-19 15:18:23] ERRO: Senha incorreta.
+[2026-02-19 15:18:37] Tentativa de login cliente: teste@teste.com
+[2026-02-19 15:18:37] SUCESSO: Login cliente realizado.
+----------------------------------------

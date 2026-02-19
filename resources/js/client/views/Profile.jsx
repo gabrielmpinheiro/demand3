@@ -8,7 +8,10 @@ export default function Profile() {
     const card = `${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm border`;
     const inputCls = `w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-200'}`;
 
-    const [profile, setProfile] = useState({ name: '', telefone: '', endereco: '', cidade: '', estado: '', cep: '' });
+    const [profile, setProfile] = useState({
+        name: '', telefone: '', endereco: '', cidade: '', estado: '', cep: '',
+        cnpj: '', cpf: '', inscricao_estadual: '', inscricao_municipal: ''
+    });
     const [passwords, setPasswords] = useState({ current_password: '', password: '', password_confirmation: '' });
     const [saving, setSaving] = useState(false);
     const [savingPwd, setSavingPwd] = useState(false);
@@ -19,7 +22,18 @@ export default function Profile() {
     useEffect(() => {
         axiosClient.get('/auth/user').then(({ data }) => {
             const u = data.data;
-            setProfile({ name: u.name || '', telefone: u.cliente?.telefone || '', endereco: u.cliente?.endereco || '', cidade: u.cliente?.cidade || '', estado: u.cliente?.estado || '', cep: u.cliente?.cep || '' });
+            setProfile({
+                name: u.name || '',
+                telefone: u.cliente?.telefone || '',
+                endereco: u.cliente?.endereco || '',
+                cidade: u.cliente?.cidade || '',
+                estado: u.cliente?.estado || '',
+                cep: u.cliente?.cep || '',
+                cnpj: u.cliente?.cnpj || '',
+                cpf: u.cliente?.cpf || '',
+                inscricao_estadual: u.cliente?.inscricao_estadual || '',
+                inscricao_municipal: u.cliente?.inscricao_municipal || '',
+            });
         });
     }, []);
 
@@ -45,20 +59,36 @@ export default function Profile() {
         <div className="space-y-6 max-w-2xl mx-auto">
             <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Meu Perfil</h2>
 
-            {/* Profile */}
+            {/* Dados da Empresa */}
             <div className={`${card} p-6`}>
-                <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Dados Pessoais</h3>
+                <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Dados da Empresa</h3>
                 {msg && <div className="bg-green-50 text-green-700 px-3 py-2 rounded-lg text-sm mb-3">{msg}</div>}
                 {errors && <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm mb-3">{Object.values(errors).flat().join(', ')}</div>}
                 <form onSubmit={handleProfile} className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Nome</label>
+                        <div className="sm:col-span-2">
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Nome / Razão Social</label>
                             <input value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} className={inputCls} required />
+                        </div>
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>CNPJ</label>
+                            <input value={profile.cnpj} onChange={e => setProfile({ ...profile, cnpj: e.target.value })} className={inputCls} placeholder="00.000.000/0000-00" />
+                        </div>
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>CPF</label>
+                            <input value={profile.cpf} onChange={e => setProfile({ ...profile, cpf: e.target.value })} className={inputCls} placeholder="000.000.000-00" />
                         </div>
                         <div>
                             <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Telefone</label>
                             <input value={profile.telefone} onChange={e => setProfile({ ...profile, telefone: e.target.value })} className={inputCls} />
+                        </div>
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Inscrição Estadual</label>
+                            <input value={profile.inscricao_estadual} onChange={e => setProfile({ ...profile, inscricao_estadual: e.target.value })} className={inputCls} />
+                        </div>
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Inscrição Municipal</label>
+                            <input value={profile.inscricao_municipal} onChange={e => setProfile({ ...profile, inscricao_municipal: e.target.value })} className={inputCls} />
                         </div>
                         <div className="sm:col-span-2">
                             <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Endereço</label>

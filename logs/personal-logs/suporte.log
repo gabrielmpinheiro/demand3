@@ -17,3 +17,7 @@
 [2026-02-09 23:13:29] [INFO] Suporte criado com sucesso {"id":1}
 [2026-02-09 23:13:31] [INFO] Suporte atualizado com sucesso {"id":1}
 [2026-02-09 23:15:55] [INFO] Suporte criado com sucesso {"id":3}
+[2026-02-19 18:32:09] [INFO] Suporte excluído com sucesso {"id":1}
+[2026-02-19 18:32:15] [INFO] Suporte excluído com sucesso {"id":2}
+[2026-02-19 18:32:23] [INFO] Suporte excluído com sucesso {"id":3}
+[2026-02-19 18:32:29] [INFO] Suporte excluído com sucesso {"id":4}

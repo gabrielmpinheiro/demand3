@@ -101,6 +101,12 @@ class ClienteAuthController extends Controller
             'telefone' => 'nullable|string|max:20',
             'cpf' => 'nullable|string|max:14',
             'cnpj' => 'nullable|string|max:18',
+            'endereco' => 'nullable|string|max:255',
+            'cidade' => 'nullable|string|max:255',
+            'estado' => 'nullable|string|max:2',
+            'cep' => 'nullable|string|max:9',
+            'inscricao_estadual' => 'nullable|string|max:20',
+            'inscricao_municipal' => 'nullable|string|max:20',
         ]);
 
         try {
@@ -121,6 +127,12 @@ class ClienteAuthController extends Controller
                 'telefone' => $validated['telefone'] ?? null,
                 'cpf' => $validated['cpf'] ?? null,
                 'cnpj' => $validated['cnpj'] ?? null,
+                'endereco' => $validated['endereco'] ?? null,
+                'cidade' => $validated['cidade'] ?? null,
+                'estado' => $validated['estado'] ?? null,
+                'cep' => $validated['cep'] ?? null,
+                'inscricao_estadual' => $validated['inscricao_estadual'] ?? null,
+                'inscricao_municipal' => $validated['inscricao_municipal'] ?? null,
             ]);
 
             $token = $user->createToken('client-api-token')->plainTextToken;
@@ -176,6 +188,8 @@ class ClienteAuthController extends Controller
             'cep' => 'nullable|string|max:9',
             'cpf' => 'nullable|string|max:14',
             'cnpj' => 'nullable|string|max:18',
+            'inscricao_estadual' => 'nullable|string|max:20',
+            'inscricao_municipal' => 'nullable|string|max:20',
         ]);
 
         try {

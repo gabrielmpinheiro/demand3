@@ -10,7 +10,7 @@ export default function GuestLayout() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-blue-50">
-            <div className="w-full max-w-md px-4">
+            <div className="w-full max-w-2xl px-4">
                 <Outlet />
             </div>
         </div>
