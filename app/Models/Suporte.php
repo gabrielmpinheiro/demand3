@@ -35,6 +35,11 @@ class Suporte extends Model
         return $this->hasMany(Demanda::class);
     }
 
+    public function pagamentos(): HasMany
+    {
+        return $this->hasMany(Pagamento::class);
+    }
+
     public function dominio(): BelongsTo
     {
         return $this->belongsTo(Dominio::class);

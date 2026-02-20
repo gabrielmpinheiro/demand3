@@ -14,6 +14,7 @@ class Pagamento extends Model
     protected $fillable = [
         'cliente_id',
         'assinatura_id',
+        'suporte_id',
         'valor',
         'status',
         'data_vencimento',
@@ -39,6 +40,11 @@ class Pagamento extends Model
     public function assinatura(): BelongsTo
     {
         return $this->belongsTo(Assinatura::class);
+    }
+
+    public function suporte(): BelongsTo
+    {
+        return $this->belongsTo(Suporte::class);
     }
 
     public function scopeAberto($query)
