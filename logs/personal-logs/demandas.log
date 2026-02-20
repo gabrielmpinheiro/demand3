@@ -26,3 +26,22 @@
 [2026-02-19 18:52:23] [INFO] Demanda criada com sucesso {"id":8,"titulo":"Troca da identidade"}
 [2026-02-19 18:53:00] [INFO] Demanda criada com sucesso {"id":9,"titulo":"Demanda de teste 01"}
 [2026-02-19 18:53:41] [INFO] Demanda criada com sucesso {"id":10,"titulo":"Demanda de teste 02"}
+[2026-02-20 08:13:19] [INFO] Demanda atualizada com sucesso {"id":10,"changes":{"status":"em_andamento"}}
+[2026-02-20 08:13:19] [INFO] Demanda atualizada com sucesso {"id":9,"changes":{"status":"em_andamento"}}
+[2026-02-20 08:13:19] [INFO] Demanda atualizada com sucesso {"id":8,"changes":{"status":"em_andamento"}}
+[2026-02-20 08:48:08] [INFO] Demanda atualizada com sucesso {"id":9,"changes":{"status":"em_aprovacao"}}
+[2026-02-20 08:48:08] [INFO] Demanda atualizada com sucesso {"id":10,"changes":{"status":"em_aprovacao"}}
+[2026-02-20 08:48:08] [INFO] Demanda atualizada com sucesso {"id":8,"changes":{"status":"em_aprovacao"}}
+[2026-02-20 08:49:11] [INFO] Demanda atualizada com sucesso {"id":8,"changes":{"status":"concluido"}}
+[2026-02-20 08:49:11] [INFO] Demanda atualizada com sucesso {"id":9,"changes":{"status":"concluido"}}
+[2026-02-20 08:49:11] [INFO] Demanda atualizada com sucesso {"id":10,"changes":{"status":"concluido"}}
+[2026-02-20 10:15:22] [INFO] Demanda atualizada com sucesso {"id":9,"changes":{"status":"em_andamento"}}
+[2026-02-20 10:15:22] [INFO] Demanda atualizada com sucesso {"id":10,"changes":{"status":"em_andamento"}}
+[2026-02-20 10:15:23] [INFO] Demanda atualizada com sucesso {"id":8,"changes":{"status":"em_andamento"}}
+[2026-02-20 10:15:47] [INFO] Cobrança avulsa gerada {"demanda_id":9,"valor":400,"vencimento":"2026-03-07"}
+[2026-02-20 10:15:47] [INFO] Cobrança avulsa gerada {"demanda_id":10,"valor":300,"vencimento":"2026-03-07"}
+[2026-02-20 10:15:47] [INFO] Demanda atualizada com sucesso {"id":10,"changes":{"status":"concluido"}}
+[2026-02-20 10:15:47] [INFO] Demanda atualizada com sucesso {"id":9,"changes":{"status":"concluido"}}
+[2026-02-20 10:15:48] [INFO] Cobrança avulsa gerada {"demanda_id":8,"valor":150,"vencimento":"2026-03-07"}
+[2026-02-20 10:15:48] [INFO] Demanda atualizada com sucesso {"id":8,"changes":{"status":"concluido"}}
+[2026-02-20 13:16:53] [INFO] Demanda criada com sucesso {"id":11,"titulo":"Testando uma demanda vinculada"}

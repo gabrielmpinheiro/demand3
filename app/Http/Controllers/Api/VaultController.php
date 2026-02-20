@@ -50,7 +50,7 @@ class VaultController extends Controller
                 'servico' => 'required|string|max:255',
                 'login' => 'required|string|max:255',
                 'senha' => 'required|string|max:255',
-                'url' => 'nullable|url|max:255',
+                'url' => 'nullable|string|max:500',
                 'notas' => 'nullable|string',
                 'status' => 'nullable|in:ativo,inativo,cancelado',
             ]);
@@ -85,7 +85,7 @@ class VaultController extends Controller
                 'servico' => 'sometimes|required|string|max:255',
                 'login' => 'sometimes|required|string|max:255',
                 'senha' => 'nullable|string|max:255',
-                'url' => 'nullable|url|max:255',
+                'url' => 'nullable|string|max:500',
                 'notas' => 'nullable|string',
                 'status' => 'nullable|in:ativo,inativo,cancelado',
             ]);

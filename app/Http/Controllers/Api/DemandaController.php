@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Demanda;
 use App\Models\Notificacao;
+use App\Models\Pagamento;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class DemandaController extends Controller
 {
@@ -20,6 +22,10 @@ class DemandaController extends Controller
 
         if ($request->has('assinatura_id')) {
             $query->where('assinatura_id', $request->assinatura_id);
+        }
+
+        if ($request->has('suporte_id')) {
+            $query->where('suporte_id', $request->suporte_id);
         }
 
         if ($request->has('status')) {
@@ -49,6 +55,7 @@ class DemandaController extends Controller
     {
         $validated = $request->validate([
             'dominio_id' => 'required|exists:dominios,id',
+            'suporte_id' => 'required|exists:suportes,id', //torna obrigatório ter o registro do suporte_id na demanda.
             'titulo' => 'required|string|max:255',
             'descricao' => 'nullable|string',
             'quantidade_horas_tecnicas' => 'required|numeric|min:0.5',
@@ -147,15 +154,25 @@ class DemandaController extends Controller
                 );
             }
 
-            // Check for support auto-completion if status is 'concluido'
-            if ($demanda->status === 'concluido' && $demanda->suporte_id) {
-                $suporte = $demanda->suporte;
-                $pendingDemands = $suporte->demandas()->whereNotIn('status', ['concluido', 'cancelado'])->count();
+            // Verifica conclusão automática do suporte e gera cobrança se necessário
+            if ($demanda->status === 'concluido') {
+                if ($demanda->suporte_id) {
+                    $suporte = $demanda->suporte;
+                    $pendingDemands = $suporte->demandas()->whereNotIn('status', ['concluido', 'cancelado'])->count();
 
-                if ($pendingDemands === 0 && $suporte->status !== 'concluido') {
-                    $suporte->status = 'concluido';
-                    $suporte->save();
-                    $this->log('INFO', 'Suporte concluído automaticamente', ['suporte_id' => $suporte->id, 'trigger_demanda_id' => $demanda->id]);
+                    if ($pendingDemands === 0 && $suporte->status !== 'concluido') {
+                        $suporte->status = 'concluido';
+                        $suporte->save();
+                        $this->log('INFO', 'Suporte concluído automaticamente', ['suporte_id' => $suporte->id, 'trigger_demanda_id' => $demanda->id]);
+                    }
+
+                    // Gera cobrança após todas demandas do chamado concluídas
+                    if ($pendingDemands === 0) {
+                        $this->gerarCobrancaChamado($suporte);
+                    }
+                } else {
+                    // Demanda avulsa (sem chamado)
+                    $this->gerarCobrancaAvulsa($demanda);
                 }
             }
 
@@ -251,6 +268,14 @@ class DemandaController extends Controller
                 $suporte->save();
                 $this->log('INFO', 'Suporte concluído automaticamente', ['suporte_id' => $suporte->id, 'trigger_demanda_id' => $demanda->id]);
             }
+
+            // Gera cobrança após todas demandas do chamado concluídas
+            if ($pendingDemands === 0) {
+                $this->gerarCobrancaChamado($suporte);
+            }
+        } else {
+            // Demanda avulsa (sem chamado)
+            $this->gerarCobrancaAvulsa($demanda);
         }
 
         $this->log('INFO', 'Demanda concluída', ['id' => $demanda->id]);
@@ -273,6 +298,119 @@ class DemandaController extends Controller
         }
 
         file_put_contents($logPath, $logMessage, FILE_APPEND);
+    }
+
+    /**
+     * Gera cobrança para uma demanda avulsa (sem chamado de suporte)
+     */
+    private function gerarCobrancaAvulsa(Demanda $demanda): void
+    {
+        // Evita cobrança dupla
+        if ($demanda->cobrado) {
+            return;
+        }
+
+        $valorCobrar = 0;
+        $descricaoTipo = '';
+
+        if (!$demanda->assinatura_id) {
+            // Sem assinatura: cobra valor integral
+            $valorCobrar = (float) $demanda->valor;
+            $descricaoTipo = 'Demanda avulsa (sem plano)';
+        } elseif ((float) $demanda->valor_excedente > 0) {
+            // Com assinatura mas com excedente: cobra apenas o excedente
+            $valorCobrar = (float) $demanda->valor_excedente;
+            $descricaoTipo = 'Excedente de horas';
+        }
+
+        if ($valorCobrar <= 0) {
+            return; // Nada a cobrar (horas dentro do plano)
+        }
+
+        $dominio = $demanda->dominio;
+        $clienteId = $dominio->cliente_id;
+        $vencimento = Carbon::now()->addDays(15);
+
+        Pagamento::create([
+            'cliente_id' => $clienteId,
+            'assinatura_id' => $demanda->assinatura_id,
+            'valor' => $valorCobrar,
+            'status' => 'aberto',
+            'data_vencimento' => $vencimento,
+            'descricao' => "{$descricaoTipo}: {$demanda->titulo}",
+        ]);
+
+        $demanda->cobrado = true;
+        $demanda->save();
+
+        $this->log('INFO', 'Cobrança avulsa gerada', [
+            'demanda_id' => $demanda->id,
+            'valor' => $valorCobrar,
+            'vencimento' => $vencimento->format('Y-m-d'),
+        ]);
+    }
+
+    /**
+     * Gera cobrança agrupada para todas as demandas de um chamado de suporte
+     * (somente quando todas estiverem concluídas ou canceladas)
+     */
+    private function gerarCobrancaChamado(\App\Models\Suporte $suporte): void
+    {
+        // Busca demandas não canceladas e ainda não cobradas do chamado
+        $demandasNaoCobradas = $suporte->demandas()
+            ->where('status', 'concluido')
+            ->where('cobrado', false)
+            ->get();
+
+        if ($demandasNaoCobradas->isEmpty()) {
+            return; // Nada a cobrar
+        }
+
+        $valorTotal = 0;
+        $temAssinatura = false;
+
+        foreach ($demandasNaoCobradas as $d) {
+            if (!$d->assinatura_id) {
+                $valorTotal += (float) $d->valor;
+            } else {
+                $valorTotal += (float) $d->valor_excedente;
+                $temAssinatura = true;
+            }
+        }
+
+        if ($valorTotal <= 0) {
+            // Mesmo sem cobrar, marca como cobrado para não reprocessar
+            $demandasNaoCobradas->each(function ($d) {
+                $d->cobrado = true;
+                $d->save();
+            });
+            return;
+        }
+
+        $clienteId = $suporte->dominio?->cliente_id ?? $suporte->cliente_id;
+        $vencimento = Carbon::now()->addDays(15);
+        $descricaoTipo = $temAssinatura ? 'Excedente de horas' : 'Demandas avulsas';
+
+        Pagamento::create([
+            'cliente_id' => $clienteId,
+            'valor' => round($valorTotal, 2),
+            'status' => 'aberto',
+            'data_vencimento' => $vencimento,
+            'descricao' => "{$descricaoTipo} — Chamado #{$suporte->id}",
+        ]);
+
+        // Marca todas as demandas do chamado como cobradas
+        $demandasNaoCobradas->each(function ($d) {
+            $d->cobrado = true;
+            $d->save();
+        });
+
+        $this->log('INFO', 'Cobrança de chamado gerada', [
+            'suporte_id' => $suporte->id,
+            'valor_total' => round($valorTotal, 2),
+            'demandas_cobradas' => $demandasNaoCobradas->count(),
+            'vencimento' => $vencimento->format('Y-m-d'),
+        ]);
     }
 
     /**

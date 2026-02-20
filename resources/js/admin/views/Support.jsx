@@ -3,14 +3,16 @@ import axiosClient from "../axios-client";
 import Table from "../components/Table";
 import SuporteModal from "../components/SuporteModal";
 import DemandModal from "../components/DemandModal";
-import { Link } from "react-router-dom";
+import TicketDemandasModal from "../components/TicketDemandasModal";
 
 export default function Support() {
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [demandModalOpen, setDemandModalOpen] = useState(false);
+    const [ticketDemandasModalOpen, setTicketDemandasModalOpen] = useState(false);
     const [currentTicket, setCurrentTicket] = useState(null);
+    const [selectedTicketForDemands, setSelectedTicketForDemands] = useState(null);
     const [pagination, setPagination] = useState({});
 
     const fetchTickets = (page = 1) => {
@@ -58,7 +60,12 @@ export default function Support() {
     const handleGenerateDemand = (ticket) => {
         setCurrentTicket(ticket);
         setDemandModalOpen(true);
-    }
+    };
+
+    const handleViewDemands = (ticket) => {
+        setSelectedTicketForDemands(ticket);
+        setTicketDemandasModalOpen(true);
+    };
 
     const handleSave = async (formData) => {
         if (currentTicket) {
@@ -102,13 +109,18 @@ export default function Support() {
         {
             key: 'demandas_count',
             label: 'Demandas',
-            render: (val) => {
-                return (
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${val > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-500'}`}>
-                        {val || 0}
-                    </span>
-                );
-            }
+            render: (val, row) => (
+                <button
+                    onClick={() => handleViewDemands(row)}
+                    className={`px-2 py-1 rounded text-xs font-semibold transition hover:opacity-80 ${val > 0
+                            ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        }`}
+                    title="Ver demandas deste chamado"
+                >
+                    {val || 0} demanda{val !== 1 ? 's' : ''}
+                </button>
+            )
         },
         { key: 'created_at', label: 'Data', render: (val) => new Date(val).toLocaleDateString('pt-BR') },
         {
@@ -164,6 +176,12 @@ export default function Support() {
                 suporteId={currentTicket?.id}
                 clienteId={currentTicket?.cliente_id}
                 dominioId={currentTicket?.dominio_id}
+            />
+
+            <TicketDemandasModal
+                isOpen={ticketDemandasModalOpen}
+                onClose={() => setTicketDemandasModalOpen(false)}
+                ticket={selectedTicketForDemands}
             />
         </div>
     );

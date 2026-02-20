@@ -165,11 +165,17 @@ export default function Vault() {
         },
         { key: 'login', label: 'Login' },
         {
-            key: 'url', label: 'URL', render: (val) => val ? (
-                <a href={val} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs truncate block max-w-[150px]" title={val}>
-                    {val.replace(/^https?:\/\//, '')}
-                </a>
-            ) : '—'
+            key: 'url', label: 'URL/Acesso', render: (val) => {
+                if (!val) return '—';
+                const isUrl = /^https?:\/\//i.test(val);
+                return isUrl ? (
+                    <a href={val} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs truncate block max-w-[150px]" title={val}>
+                        {val.replace(/^https?:\/\//, '')}
+                    </a>
+                ) : (
+                    <span className="text-xs text-gray-700 truncate block max-w-[150px]" title={val}>{val}</span>
+                );
+            }
         },
         {
             key: 'senha_actions',

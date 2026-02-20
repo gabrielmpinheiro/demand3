@@ -213,12 +213,12 @@ export default function VaultModal({ isOpen, onClose, onSave, vault }) {
                                 URL
                             </label>
                             <input
-                                type="url"
+                                type="text"
                                 name="url"
                                 value={formData.url}
                                 onChange={handleChange}
                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.url ? 'border-red-500' : 'border-gray-300'}`}
-                                placeholder="https://..."
+                                placeholder="URL ou caminho de acesso (ex: https://... ou servidor:21)"
                                 disabled={loading}
                             />
                             {errors.url && (

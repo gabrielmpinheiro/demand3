@@ -15,17 +15,25 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (isOpen && clienteId) {
-            // Fetch domains for the specific client
-            axiosClient.get(`/dominios?cliente_id=${clienteId}`)
-                .then(({ data }) => {
-                    setDomains(data.data);
-                })
-                .catch(err => {
-                    console.error("Erro ao buscar domínios:", err);
-                });
+        if (isOpen) {
+            const clienteParaBuscar = clienteId || (demand?.dominio?.cliente_id);
+            if (clienteParaBuscar) {
+                // Fetch domains for the specific client
+                axiosClient.get(`/dominios?cliente_id=${clienteParaBuscar}`)
+                    .then(({ data }) => {
+                        setDomains(data.data);
+                    })
+                    .catch(err => {
+                        console.error("Erro ao buscar domínios:", err);
+                    });
+            } else if (demand?.dominio_id) {
+                // Editing existing demand — fetch all domains to populate select
+                axiosClient.get('/dominios?per_page=200')
+                    .then(({ data }) => setDomains(data.data))
+                    .catch(() => { });
+            }
         }
-    }, [isOpen, clienteId]);
+    }, [isOpen, clienteId, demand]);
 
     useEffect(() => {
         if (demand) {
@@ -123,20 +131,28 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Domínio *
                             </label>
-                            <select
-                                name="dominio_id"
-                                value={formData.dominio_id}
-                                onChange={handleChange}
-                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.dominio_id ? 'border-red-500' : 'border-gray-300'}`}
-                                disabled={loading}
-                            >
-                                <option value="">Selecione um domínio</option>
-                                {domains.map(domain => (
-                                    <option key={domain.id} value={domain.id}>
-                                        {domain.nome}
-                                    </option>
-                                ))}
-                            </select>
+                            {dominioId ? (
+                                // Domínio pré-definido pelo chamado — somente leitura
+                                <div className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-md text-gray-700 text-sm">
+                                    {domains.find(d => String(d.id) === String(formData.dominio_id))?.nome || `Domínio #${formData.dominio_id}`}
+                                    <span className="ml-2 text-xs text-gray-400">(definido pelo chamado)</span>
+                                </div>
+                            ) : (
+                                <select
+                                    name="dominio_id"
+                                    value={formData.dominio_id}
+                                    onChange={handleChange}
+                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.dominio_id ? 'border-red-500' : 'border-gray-300'}`}
+                                    disabled={loading}
+                                >
+                                    <option value="">Selecione um domínio</option>
+                                    {domains.map(domain => (
+                                        <option key={domain.id} value={domain.id}>
+                                            {domain.nome}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                             {errors.dominio_id && (
                                 <p className="text-red-500 text-xs mt-1">{errors.dominio_id}</p>
                             )}
