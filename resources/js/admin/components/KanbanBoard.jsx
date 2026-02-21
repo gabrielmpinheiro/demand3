@@ -48,15 +48,15 @@ export default function KanbanBoard() {
         organizeDemands(allDemands, selectedSuporteId);
     }, [allDemands, selectedSuporteId]);
 
-    const fetchDemands = async () => {
-        setLoading(true);
+    const fetchDemands = async (showLoading = true) => {
+        if (showLoading) setLoading(true);
         try {
-            const { data } = await axiosClient.get('/demandas?per_page=500');
+            const { data } = await axiosClient.get('/demandas?per_page=500&ocultar_concluidos_suporte=true');
             setAllDemands(data.data);
         } catch (error) {
             console.error("Erro ao buscar demandas:", error);
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
     };
 
@@ -114,10 +114,15 @@ export default function KanbanBoard() {
 
         try {
             await axiosClient.put(`/demandas/${draggableId}`, { status: destination.droppableId });
+            // Se movemos para ou de concluído, resincroniza sem tela de load para não piscar
+            // Isso garante que se o chamado inteiro foi concluído, as demandas dele sumam da tela.
+            if (destination.droppableId === 'concluido' || source.droppableId === 'concluido') {
+                fetchDemands(false);
+            }
         } catch (error) {
             console.error("Erro ao atualizar status:", error);
             alert("Erro ao atualizar status da demanda.");
-            fetchDemands();
+            fetchDemands(true);
         }
     };
 

@@ -45,3 +45,31 @@
 [2026-02-20 10:15:48] [INFO] Cobrança avulsa gerada {"demanda_id":8,"valor":150,"vencimento":"2026-03-07"}
 [2026-02-20 10:15:48] [INFO] Demanda atualizada com sucesso {"id":8,"changes":{"status":"concluido"}}
 [2026-02-20 13:16:53] [INFO] Demanda criada com sucesso {"id":11,"titulo":"Testando uma demanda vinculada"}
+[2026-02-20 15:18:50] [INFO] Demanda criada com sucesso {"id":12,"titulo":"Demanda teste 3"}
+[2026-02-20 15:19:11] [INFO] Demanda criada com sucesso {"id":13,"titulo":"Outra de teste"}
+[2026-02-20 15:21:08] [INFO] Demanda atualizada com sucesso {"id":11,"changes":{"status":"em_andamento"}}
+[2026-02-20 15:21:35] [INFO] Demanda atualizada com sucesso {"id":11,"changes":{"status":"em_aprovacao"}}
+[2026-02-20 15:22:03] [INFO] Demanda atualizada com sucesso {"id":11,"changes":{"status":"concluido"}}
+[2026-02-20 15:23:11] [INFO] Demanda atualizada com sucesso {"id":13,"changes":{"status":"em_aprovacao"}}
+[2026-02-20 15:23:11] [INFO] Demanda atualizada com sucesso {"id":13,"changes":{"status":"em_andamento"}}
+[2026-02-20 15:23:21] [INFO] Demanda atualizada com sucesso {"id":13,"changes":{"status":"concluido"}}
+[2026-02-20 15:23:49] [INFO] Demanda atualizada com sucesso {"id":12,"changes":{"status":"em_andamento"}}
+[2026-02-20 15:23:49] [INFO] Demanda atualizada com sucesso {"id":12,"changes":{"status":"em_aprovacao"}}
+[2026-02-20 15:23:49] [INFO] Suporte concluído automaticamente {"suporte_id":7,"trigger_demanda_id":12}
+[2026-02-20 15:23:50] [INFO] Cobrança de chamado gerada {"suporte_id":7,"valor_total":350,"demandas_cobradas":3,"vencimento":"2026-03-07"}
+[2026-02-20 15:23:50] [INFO] Demanda atualizada com sucesso {"id":12,"changes":{"status":"concluido"}}
+[2026-02-20 15:27:22] [INFO] Demanda criada com sucesso {"id":14,"titulo":"Criar o layout"}
+[2026-02-20 15:27:59] [INFO] Demanda criada com sucesso {"id":15,"titulo":"Transformar em html"}
+[2026-02-20 15:28:28] [INFO] Demanda criada com sucesso {"id":16,"titulo":"Programa\u00e7\u00e3o php"}
+[2026-02-20 15:28:57] [INFO] Demanda criada com sucesso {"id":17,"titulo":"Testar e subir pro servidor"}
+[2026-02-20 15:29:42] [INFO] Demanda atualizada com sucesso {"id":16,"changes":{"status":"em_aprovacao"}}
+[2026-02-20 15:29:42] [INFO] Demanda atualizada com sucesso {"id":17,"changes":{"status":"em_aprovacao"}}
+[2026-02-20 15:29:46] [INFO] Demanda atualizada com sucesso {"id":14,"changes":{"status":"em_aprovacao"}}
+[2026-02-20 15:29:46] [INFO] Demanda atualizada com sucesso {"id":15,"changes":{"status":"em_aprovacao"}}
+[2026-02-20 15:29:55] [INFO] Demanda atualizada com sucesso {"id":14,"changes":{"status":"em_aprovacao"}}
+[2026-02-20 15:31:05] [INFO] Demanda atualizada com sucesso {"id":16,"changes":{"status":"concluido"}}
+[2026-02-20 15:31:05] [INFO] Demanda atualizada com sucesso {"id":15,"changes":{"status":"concluido"}}
+[2026-02-20 15:31:05] [INFO] Demanda atualizada com sucesso {"id":14,"changes":{"status":"concluido"}}
+[2026-02-20 15:31:10] [INFO] Suporte concluído automaticamente {"suporte_id":8,"trigger_demanda_id":17}
+[2026-02-20 15:31:10] [INFO] Cobrança de chamado gerada {"suporte_id":8,"valor_total":2600,"demandas_cobradas":4,"vencimento":"2026-03-07"}
+[2026-02-20 15:31:10] [INFO] Demanda atualizada com sucesso {"id":17,"changes":{"status":"concluido"}}

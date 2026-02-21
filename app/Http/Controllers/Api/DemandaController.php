@@ -36,6 +36,15 @@ class DemandaController extends Controller
             $query->where('cobrado', $request->boolean('cobrado'));
         }
 
+        if ($request->boolean('ocultar_concluidos_suporte')) {
+            $query->where(function ($q) {
+                $q->whereNull('suporte_id')
+                    ->orWhereHas('suporte', function ($sq) {
+                        $sq->where('status', '!=', 'concluido');
+                    });
+            });
+        }
+
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
