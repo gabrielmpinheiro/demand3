@@ -90,3 +90,5 @@
 [2026-02-23 13:26:45] [INFO] Suporte concluído automaticamente {"suporte_id":10,"trigger_demanda_id":20}
 [2026-02-23 13:26:45] [INFO] Cobrança de chamado gerada {"suporte_id":10,"valor_total":75,"demandas_cobradas":3,"vencimento":"2026-03-10"}
 [2026-02-23 13:26:45] [INFO] Demanda atualizada com sucesso {"id":20,"changes":{"status":"concluido"}}
+[2026-02-23 17:06:36] [INFO] Demanda criada com sucesso {"id":23,"titulo":"Demanda teste 3"}
+[2026-02-23 17:08:54] [INFO] Demanda criada com sucesso {"id":24,"titulo":"Teste de demanda"}
