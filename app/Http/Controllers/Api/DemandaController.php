@@ -67,6 +67,7 @@ class DemandaController extends Controller
             'suporte_id' => 'required|exists:suportes,id', //torna obrigatório ter o registro do suporte_id na demanda.
             'titulo' => 'required|string|max:255',
             'descricao' => 'nullable|string',
+            'tipo' => 'nullable|in:hora_tecnica,plano',
             'quantidade_horas_tecnicas' => 'required|numeric|min:0.5',
             'status' => 'nullable|in:pendente,em_andamento,em_aprovacao,concluido,cancelado',
         ]);
@@ -125,6 +126,7 @@ class DemandaController extends Controller
         $validated = $request->validate([
             'titulo' => 'sometimes|required|string|max:255',
             'descricao' => 'nullable|string',
+            'tipo' => 'sometimes|in:hora_tecnica,plano',
             'status' => 'nullable|in:pendente,em_andamento,em_aprovacao,concluido,cancelado',
             'quantidade_horas_tecnicas' => 'sometimes|required|numeric|min:0.5',
         ]);
@@ -132,13 +134,15 @@ class DemandaController extends Controller
         try {
             $statusAnterior = $demanda->status;
 
-            // Se alterou as horas, recalcula o valor
+            // Se alterou as horas ou o tipo, recalcula o valor
             if (
-                isset($validated['quantidade_horas_tecnicas']) &&
-                $validated['quantidade_horas_tecnicas'] != $demanda->quantidade_horas_tecnicas
+                (isset($validated['quantidade_horas_tecnicas']) && $validated['quantidade_horas_tecnicas'] != $demanda->quantidade_horas_tecnicas) ||
+                (isset($validated['tipo']) && $validated['tipo'] !== $demanda->tipo)
             ) {
                 $demanda->fill($validated);
-                $demanda->calcularValor();
+                if ($demanda->status !== 'concluido' && $demanda->status !== 'cancelado') {
+                    $demanda->calcularValor();
+                }
                 $demanda->save();
             } else {
                 $demanda->update($validated);

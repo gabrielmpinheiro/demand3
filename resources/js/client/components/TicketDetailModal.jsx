@@ -92,9 +92,20 @@ export default function TicketDetailModal({ isOpen, onClose, ticketId }) {
                             ) : (
                                 <div className="space-y-2">
                                     {ticket.demandas.map(d => (
-                                        <div key={d.id} className={`p-4 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'} flex flex-col sm:flex-row justify-between gap-2`}>
+                                        <div key={d.id} className={`p-4 rounded-lg border flex flex-col sm:flex-row justify-between gap-2 ${d.tipo === 'plano'
+                                                ? (isDark ? 'bg-green-900/20 border-green-800' : 'bg-green-50 border-green-200')
+                                                : (isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200')
+                                            }`}>
                                             <div className="flex-1 min-w-0">
-                                                <p className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-800'}`}>{d.titulo}</p>
+                                                <p className={`font-medium text-sm flex items-center gap-2 ${d.tipo === 'plano'
+                                                        ? (isDark ? 'text-green-300' : 'text-green-800')
+                                                        : (isDark ? 'text-white' : 'text-gray-800')
+                                                    }`}>
+                                                    {d.titulo}
+                                                    {d.tipo === 'plano' && (
+                                                        <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${isDark ? 'bg-green-800 text-green-200' : 'bg-green-200 text-green-800'}`}>Plano</span>
+                                                    )}
+                                                </p>
                                                 {d.descricao && <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'} line-clamp-2`}>{d.descricao}</p>}
                                                 <div className={`flex items-center gap-3 mt-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                                                     <span>{d.quantidade_horas_tecnicas}h técnicas</span>

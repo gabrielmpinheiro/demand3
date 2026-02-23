@@ -89,6 +89,9 @@ export default function TicketDemandasModal({ isOpen, onClose, ticket }) {
                                                 </svg>
                                                 {Number(d.quantidade_horas_tecnicas).toFixed(1)}h
                                             </span>
+                                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${d.tipo === 'plano' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                {d.tipo === 'plano' ? 'Plano' : 'Hora Técnica'}
+                                            </span>
                                             {d.dominio?.nome && (
                                                 <span>{d.dominio.nome}</span>
                                             )}

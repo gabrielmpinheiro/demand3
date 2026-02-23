@@ -6,6 +6,7 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
         dominio_id: '',
         titulo: '',
         descricao: '',
+        tipo: 'hora_tecnica',
         quantidade_horas_tecnicas: 1,
         status: 'pendente',
         suporte_id: '',
@@ -41,6 +42,7 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
                 dominio_id: demand.dominio_id || '',
                 titulo: demand.titulo || '',
                 descricao: demand.descricao || '',
+                tipo: demand.tipo || 'hora_tecnica',
                 quantidade_horas_tecnicas: demand.quantidade_horas_tecnicas || 1,
                 status: demand.status || 'pendente',
                 suporte_id: demand.suporte_id || suporteId || '',
@@ -50,6 +52,7 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
                 dominio_id: dominioId || '',
                 titulo: '',
                 descricao: '',
+                tipo: 'hora_tecnica',
                 quantidade_horas_tecnicas: 1,
                 status: 'pendente',
                 suporte_id: suporteId || '',
@@ -189,6 +192,22 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
                                 placeholder="Detalhes da demanda"
                                 disabled={loading}
                             ></textarea>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Tipo de Demanda
+                            </label>
+                            <select
+                                name="tipo"
+                                value={formData.tipo}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                disabled={loading}
+                            >
+                                <option value="hora_tecnica">Hora Técnica</option>
+                                <option value="plano">Plano (Livre de cobrança)</option>
+                            </select>
                         </div>
 
                         <div>

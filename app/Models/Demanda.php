@@ -18,6 +18,7 @@ class Demanda extends Model
         'suporte_id',
         'titulo',
         'descricao',
+        'tipo',
         'status',
         'quantidade_horas_tecnicas',
         'valor',
@@ -88,6 +89,13 @@ class Demanda extends Model
         $dominio = $this->dominio;
         $assinatura = $dominio->assinatura;
         $horas = (float) $this->quantidade_horas_tecnicas;
+
+        // Se o tipo for "plano", a demanda não tem custo nem desconta horas
+        if ($this->tipo === 'plano') {
+            $this->valor = 0;
+            $this->valor_excedente = 0;
+            return;
+        }
 
         if (!$assinatura) {
             // Sem plano ativo: cobra valor integral (R$ 100/h)
