@@ -37,6 +37,8 @@ class ClienteSuporteController extends Controller
         $validated = $request->validate([
             'dominio_id' => 'nullable|exists:dominios,id',
             'mensagem' => 'required|string',
+            'arquivos' => 'nullable|array',
+            'arquivos.*' => 'file|mimes:pdf,docx,doc,xls,xlsx,xd,psd,zip|max:225280', // 220 MB
         ]);
 
         try {
@@ -57,6 +59,22 @@ class ClienteSuporteController extends Controller
                 'status' => 'aberto',
             ]);
 
+            // Processa os arquivos enviados
+            $caminhos = [];
+            if ($request->hasFile('arquivos')) {
+                foreach ($request->file('arquivos') as $arquivo) {
+                    $caminho = $arquivo->store("suportes/{$suporte->id}", 'local');
+                    $caminhos[] = [
+                        'nome_original' => $arquivo->getClientOriginalName(),
+                        'caminho' => $caminho,
+                        'tamanho' => $arquivo->getSize(),
+                        'mime' => $arquivo->getClientMimeType(),
+                    ];
+                }
+                $suporte->arquivos = $caminhos;
+                $suporte->save();
+            }
+
             // Notifica admins
             Notificacao::notificarAdmins(
                 'Novo chamado do cliente',
@@ -66,7 +84,7 @@ class ClienteSuporteController extends Controller
                 'suporte'
             );
 
-            $this->log('INFO', 'Chamado criado pelo cliente', ['id' => $suporte->id, 'cliente' => $cliente->nome]);
+            $this->log('INFO', 'Chamado criado pelo cliente', ['id' => $suporte->id, 'cliente' => $cliente->nome, 'arquivos' => count($caminhos)]);
 
             return response()->json([
                 'message' => 'Chamado aberto com sucesso',
@@ -77,6 +95,7 @@ class ClienteSuporteController extends Controller
             return response()->json(['message' => 'Erro ao abrir chamado'], 500);
         }
     }
+
 
     public function show(Request $request, Suporte $suporte): JsonResponse
     {

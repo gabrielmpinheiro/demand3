@@ -10,3 +10,22 @@
 [2026-02-23 13:21:27] Tentativa de login cliente: gabrielmpinheiro@gmail.com
 [2026-02-23 13:21:27] SUCESSO: Login cliente realizado.
 ----------------------------------------
+[2026-03-02 18:14:38] Tentativa de login cliente: gabrielmpinheiro2@gmail.com
+[2026-03-02 18:14:38] ERRO: Usuário não é cliente (role: admin).
+[2026-03-02 18:14:51] Tentativa de login cliente: gabrielmpinheiro2@gmail.com
+[2026-03-02 18:14:51] ERRO: Usuário não é cliente (role: admin).
+[2026-03-02 18:15:05] Tentativa de login cliente: gabrielmpinheiro2@gmail.com
+[2026-03-02 18:15:05] ERRO: Usuário não é cliente (role: admin).
+[2026-03-02 18:15:21] Tentativa de login cliente: gabrielmpinheiro2@gmail.com
+[2026-03-02 18:15:21] ERRO: Usuário não é cliente (role: admin).
+[2026-03-02 18:15:28] Tentativa de login cliente: gabrielmpinheiro2@gmail.com
+[2026-03-02 18:15:28] ERRO: Usuário não é cliente (role: admin).
+[2026-03-02 18:15:34] Tentativa de login cliente: gabrielmpinheiro@gmail.com
+[2026-03-02 18:15:34] SUCESSO: Login cliente realizado.
+----------------------------------------
+[2026-03-02 19:24:41] Tentativa de login cliente: gabrielmpinheiro@gmail.com
+[2026-03-02 19:24:41] SUCESSO: Login cliente realizado.
+----------------------------------------
+[2026-03-02 19:26:55] Tentativa de login cliente: gabrielmpinheiro@gmail.com
+[2026-03-02 19:26:55] SUCESSO: Login cliente realizado.
+----------------------------------------

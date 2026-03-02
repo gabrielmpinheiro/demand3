@@ -16,9 +16,14 @@ export default function Vault() {
     const [editVault, setEditVault] = useState(null);
     const [revealedPasswords, setRevealedPasswords] = useState({});
 
+    const [filterDomain, setFilterDomain] = useState('');
+
     const fetchVaults = () => {
-        const params = search ? `?search=${encodeURIComponent(search)}` : '';
-        axiosClient.get(`/vault${params}`).then(({ data }) => {
+        const params = new URLSearchParams();
+        if (search) params.set('search', search);
+        if (filterDomain) params.set('dominio_id', filterDomain);
+        const qs = params.toString() ? `?${params.toString()}` : '';
+        axiosClient.get(`/vault${qs}`).then(({ data }) => {
             setVaults(data.data || []);
             setLoading(false);
         }).catch(() => setLoading(false));
@@ -38,7 +43,7 @@ export default function Vault() {
     useEffect(() => {
         const timer = setTimeout(() => fetchVaults(), 300);
         return () => clearTimeout(timer);
-    }, [search]);
+    }, [search, filterDomain]);
 
     const handleDelete = (id) => {
         if (!confirm('Excluir esta credencial?')) return;
@@ -73,7 +78,15 @@ export default function Vault() {
                     <svg className="w-6 h-6 inline-block mr-2 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                     Vault
                 </h2>
-                <div className="flex gap-2 w-full sm:w-auto">
+                <div className="flex gap-2 w-full sm:w-auto flex-wrap">
+                    <select
+                        value={filterDomain}
+                        onChange={e => setFilterDomain(e.target.value)}
+                        className={`px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-200 text-gray-700'}`}
+                    >
+                        <option value="">Todos os domínios</option>
+                        {domains.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
+                    </select>
                     <input
                         type="text"
                         placeholder="Buscar..."

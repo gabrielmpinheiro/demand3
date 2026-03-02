@@ -13,43 +13,66 @@ export default function Tickets() {
     const [showModal, setShowModal] = useState(false);
     const [selectedTicketId, setSelectedTicketId] = useState(null);
     const [filter, setFilter] = useState('');
+    const [filterDomain, setFilterDomain] = useState('');
     const isDark = theme.mode === 'dark';
     const card = `${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm border`;
 
     const fetchTickets = () => {
-        const params = filter ? `?status=${filter}` : '';
-        axiosClient.get(`/suportes${params}`).then(({ data }) => {
+        const params = new URLSearchParams();
+        if (filter) params.set('status', filter);
+        if (filterDomain) params.set('dominio_id', filterDomain);
+        const qs = params.toString() ? `?${params.toString()}` : '';
+        axiosClient.get(`/suportes${qs}`).then(({ data }) => {
             setTickets(data.data || []);
-            setLoading(false);
-        }).catch(() => setLoading(false));
+        }).catch(() => { });
     };
 
     useEffect(() => {
         Promise.all([
-            axiosClient.get(`/suportes${filter ? `?status=${filter}` : ''}`),
+            axiosClient.get('/suportes'),
             axiosClient.get('/dominios'),
         ]).then(([t, d]) => {
             setTickets(t.data.data || []);
             setDomains(d.data.data || []);
             setLoading(false);
         }).catch(() => setLoading(false));
-    }, [filter]);
+    }, []);
+
+    useEffect(() => {
+        fetchTickets();
+    }, [filter, filterDomain]);
 
     const statusColor = (s) => ({ aberto: 'bg-yellow-100 text-yellow-700', em_andamento: 'bg-blue-100 text-blue-700', concluido: 'bg-green-100 text-green-700' }[s] || 'bg-gray-100 text-gray-600');
+    const statusLabel = (s) => ({ aberto: 'Aberto', em_andamento: 'Em Andamento', concluido: 'Concluído' }[s] || s);
 
     if (loading) return <div className="flex justify-center py-12"><svg className="animate-spin h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg></div>;
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Chamados</h2>
-                <div className="flex gap-2 flex-wrap">
+            <div className="flex flex-col gap-3">
+                {/* Title + New button */}
+                <div className="flex justify-between items-center">
+                    <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Chamados</h2>
+                    <button onClick={() => setShowModal(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm rounded-lg font-medium">+ Novo</button>
+                </div>
+
+                {/* Status + Domain filters */}
+                <div className="flex flex-wrap gap-2 items-center">
                     {['', 'aberto', 'em_andamento', 'concluido'].map(f => (
                         <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 text-xs rounded-lg font-medium transition ${filter === f ? 'bg-indigo-600 text-white' : isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
-                            {f === '' ? 'Todos' : f === 'aberto' ? 'Aberto' : f === 'em_andamento' ? 'Em Andamento' : 'Concluído'}
+                            {f === '' ? 'Todos' : statusLabel(f)}
                         </button>
                     ))}
-                    <button onClick={() => setShowModal(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 text-xs rounded-lg font-medium">+ Novo</button>
+
+                    {/* Domain filter */}
+                    <select
+                        value={filterDomain}
+                        onChange={e => setFilterDomain(e.target.value)}
+                        className={`px-3 py-1.5 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-200 text-gray-700'}`}
+                    >
+                        <option value="">Todos os domínios</option>
+                        {domains.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
+                    </select>
                 </div>
             </div>
 
@@ -76,7 +99,7 @@ export default function Tickets() {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     {t.demandas_count > 0 && <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t.demandas_count} demanda(s)</span>}
-                                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor(t.status)}`}>{t.status}</span>
+                                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor(t.status)}`}>{statusLabel(t.status)}</span>
                                     <svg className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
                                 </div>
                             </div>
@@ -89,9 +112,7 @@ export default function Tickets() {
                 <TicketModal
                     isOpen={showModal}
                     onClose={() => setShowModal(false)}
-                    onSuccess={() => {
-                        fetchTickets();
-                    }}
+                    onSuccess={() => { fetchTickets(); }}
                     domains={domains}
                 />
             )}

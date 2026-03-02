@@ -23,12 +23,29 @@ class ClientePagamentoController extends Controller
             $query->where('referencia_mes', $request->referencia_mes);
         }
 
-        $pagamentos = $query->with(['assinatura.plano', 'assinatura.dominio'])
+        // Filtro por período de vencimento
+        if ($request->has('data_inicio') && $request->data_inicio) {
+            $query->whereDate('data_vencimento', '>=', $request->data_inicio);
+        }
+
+        if ($request->has('data_fim') && $request->data_fim) {
+            $query->whereDate('data_vencimento', '<=', $request->data_fim);
+        }
+
+        // Filtro por domínio (via assinatura)
+        if ($request->has('dominio_id') && $request->dominio_id) {
+            $query->whereHas('assinatura', function ($q) use ($request) {
+                $q->where('dominio_id', $request->dominio_id);
+            });
+        }
+
+        $pagamentos = $query->with(['assinatura.plano', 'assinatura.dominio', 'suporte.dominio'])
             ->orderBy('data_vencimento', 'desc')
             ->paginate($request->get('per_page', 15));
 
         return response()->json($pagamentos);
     }
+
 
     /**
      * Marca a fatura como pendente de conferência (cliente clicou em "Pagar")

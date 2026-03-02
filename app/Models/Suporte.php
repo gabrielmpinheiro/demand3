@@ -17,12 +17,14 @@ class Suporte extends Model
         'dominio_id',
         'mensagem',
         'status',
+        'arquivos',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'arquivos' => 'array',
     ];
 
     public function cliente(): BelongsTo

@@ -3,6 +3,8 @@ import { useStateContext } from "../contexts/ContextProvider";
 import { useState, useEffect } from "react";
 import axiosClient from "../axios-client";
 import TicketModal from "../components/TicketModal";
+import OnboardingModal from "../components/OnboardingModal";
+import ProfileCompleteModal from "../components/ProfileCompleteModal";
 
 const sidebarColors = {
     indigo: { bg: 'bg-indigo-900', hover: 'hover:bg-indigo-800', border: 'border-indigo-800', accent: 'text-indigo-400' },
@@ -19,6 +21,8 @@ export default function DefaultLayout() {
     const [themeMenuOpen, setThemeMenuOpen] = useState(false);
     const [showNewTicketModal, setShowNewTicketModal] = useState(false);
     const [ticketDomains, setTicketDomains] = useState([]);
+    const [showOnboarding, setShowOnboarding] = useState(false);
+    const [showProfileComplete, setShowProfileComplete] = useState(false);
     const location = useLocation();
 
     const colors = sidebarColors[theme.sidebarColor] || sidebarColors.indigo;
@@ -45,9 +49,23 @@ export default function DefaultLayout() {
         if (token && !user.name) {
             axiosClient.get('/auth/user')
                 .then(({ data }) => {
-                    setUser(data.data);
-                    if (data.data.cliente) {
-                        setCliente(data.data.cliente);
+                    const u = data.data;
+                    setUser(u);
+                    if (u.cliente) {
+                        setCliente(u.cliente);
+                        // Check if profile is incomplete (at least one key field missing)
+                        const c = u.cliente;
+                        const incomplete = !c.cnpj && !c.cpf;
+                        setShowProfileComplete(incomplete);
+
+                        // Show onboarding only on first access
+                        const onboardedKey = `DEMAND3_ONBOARDED_${u.id}`;
+                        if (!localStorage.getItem(onboardedKey)) {
+                            if (!incomplete) {
+                                setShowOnboarding(true);
+                            }
+                            localStorage.setItem(onboardedKey, '1');
+                        }
                     }
                     setLoading(false);
                 })
@@ -273,6 +291,28 @@ export default function DefaultLayout() {
                     }}
                     domains={ticketDomains}
                 />
+            )}
+
+            {/* Onboarding tutorial modal */}
+            <OnboardingModal
+                isOpen={showOnboarding && !showProfileComplete}
+                onClose={() => setShowOnboarding(false)}
+            />
+
+            {/* Profile completion modal (blocking) */}
+            <ProfileCompleteModal
+                isOpen={showProfileComplete}
+            />
+
+            {/* Help button (?) to reopen tutorial */}
+            {!showOnboarding && !showProfileComplete && (
+                <button
+                    onClick={() => setShowOnboarding(true)}
+                    title="Como usar a plataforma"
+                    className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 w-10 h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg flex items-center justify-center font-bold text-lg transition-all hover:scale-110"
+                >
+                    ?
+                </button>
             )}
         </div>
     );
