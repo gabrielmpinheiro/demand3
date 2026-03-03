@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Suporte;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SuporteController extends Controller
 {
@@ -130,6 +132,32 @@ class SuporteController extends Controller
             $this->log('ERROR', 'Erro ao excluir suporte', ['id' => $suporte->id, 'error' => $e->getMessage()]);
             return response()->json(['message' => 'Erro ao excluir suporte'], 500);
         }
+    }
+
+    /**
+     * Faz o download de um arquivo anexado a um suporte
+     */
+    public function downloadArquivo(Suporte $suporte, int $index): StreamedResponse|JsonResponse
+    {
+        $arquivos = $suporte->arquivos ?? [];
+
+        if (!isset($arquivos[$index])) {
+            return response()->json(['message' => 'Arquivo não encontrado'], 404);
+        }
+
+        $arquivo = $arquivos[$index];
+        $caminho = $arquivo['caminho'];
+
+        if (!Storage::disk('local')->exists($caminho)) {
+            return response()->json(['message' => 'Arquivo não encontrado no servidor'], 404);
+        }
+
+        $nomeOriginal = $arquivo['nome_original'] ?? basename($caminho);
+        $mime = $arquivo['mime'] ?? 'application/octet-stream';
+
+        return Storage::disk('local')->download($caminho, $nomeOriginal, [
+            'Content-Type' => $mime,
+        ]);
     }
 
     /**

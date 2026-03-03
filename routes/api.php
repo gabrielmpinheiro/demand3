@@ -76,9 +76,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('pagamentos/{pagamento}/marcar-pago', [PagamentoController::class, 'marcarPago']);
     Route::post('pagamentos/{pagamento}/cancelar', [PagamentoController::class, 'cancelar']);
     Route::post('pagamentos/gerar-fatura', [PagamentoController::class, 'gerarFaturaMensal']);
+    Route::post('pagamentos/gerar-mensalidades-pendentes', [PagamentoController::class, 'gerarMensalidadesPendentes']);
 
     // Suporte
     Route::apiResource('suportes', SuporteController::class);
+    Route::get('suportes/{suporte}/arquivos/{index}', [SuporteController::class, 'downloadArquivo']);
 
     // Notificações
     Route::apiResource('notificacoes', NotificacaoController::class);

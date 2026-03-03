@@ -419,4 +419,71 @@ class PagamentoController extends Controller
             ], 500);
         }
     }
+    /**
+     * Gera mensalidades pendentes para o mês atual (para cron ou uso manual)
+     */
+    public function gerarMensalidadesPendentes(Request $request): JsonResponse
+    {
+        try {
+            $agora = Carbon::now();
+            $referenciaMes = $agora->format('Y-m');
+
+            $inicioMes = $agora->copy()->startOfMonth();
+            $fimMes = $agora->copy()->endOfMonth();
+
+            // Buscar assinaturas ativas que já iniciaram
+            $assinaturas = Assinatura::where('status', 'ativo')
+                ->whereDate('data_inicio', '<=', $fimMes)
+                ->with(['cliente', 'plano', 'dominio'])
+                ->get();
+
+            $pagamentosCriados = 0;
+            $assinaturasSkipped = 0;
+
+            foreach ($assinaturas as $assinatura) {
+                // Verificar se já existe pagamento para este mês
+                $existe = Pagamento::where('assinatura_id', $assinatura->id)
+                    ->where('referencia_mes', $referenciaMes)
+                    ->exists();
+
+                if ($existe) {
+                    $assinaturasSkipped++;
+                    continue;
+                }
+
+                Pagamento::create([
+                    'cliente_id' => $assinatura->cliente_id,
+                    'assinatura_id' => $assinatura->id,
+                    'valor' => $assinatura->plano->preco,
+                    'status' => 'aberto',
+                    'data_vencimento' => $fimMes->copy()->addDays(10),
+                    'referencia_mes' => $referenciaMes,
+                    'descricao' => "Mensalidade {$referenciaMes} - {$assinatura->plano->nome} ({$assinatura->dominio->nome})",
+                ]);
+
+                $pagamentosCriados++;
+            }
+
+            $this->logPaymentAction('INFO', 'GENERATE_PENDING', [
+                'referencia_mes' => $referenciaMes,
+                'pagamentos_criados' => $pagamentosCriados,
+                'assinaturas_ok' => $assinaturasSkipped,
+            ], 'Geração de mensalidades pendentes concluída');
+
+            return response()->json([
+                'message' => $pagamentosCriados > 0
+                    ? "Gerado(s) {$pagamentosCriados} pagamento(s) para {$referenciaMes}"
+                    : "Todas as mensalidades de {$referenciaMes} já foram geradas",
+                'referencia_mes' => $referenciaMes,
+                'pagamentos_criados' => $pagamentosCriados,
+            ], 201);
+        } catch (\Exception $e) {
+            $this->logPaymentAction('ERROR', 'GENERATE_PENDING', [], 'Erro: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Erro ao gerar mensalidades pendentes',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
+
