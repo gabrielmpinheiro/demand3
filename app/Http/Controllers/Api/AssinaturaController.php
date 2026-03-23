@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Assinatura;
 use App\Models\Pagamento;
+use App\Services\EmailNotificacaoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -111,6 +112,9 @@ class AssinaturaController extends Controller
                 $assinatura->cliente_id,
                 'info'
             );
+
+            // Envia e-mail aos admins sobre a nova assinatura
+            (new EmailNotificacaoService())->novaAssinaturaAdmins($assinatura);
 
             return response()->json([
                 'message' => 'Assinatura criada com sucesso',

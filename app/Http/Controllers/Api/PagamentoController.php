@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Pagamento;
 use App\Models\Demanda;
 use App\Models\Assinatura;
+use App\Services\EmailNotificacaoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -102,6 +103,9 @@ class PagamentoController extends Controller
                 'status' => $pagamento->status
             ], 'Pagamento criado com sucesso');
 
+            // Envia e-mail aos admins sobre o novo pagamento
+            (new EmailNotificacaoService())->novoPagamentoAdmins($pagamento->load('cliente'));
+
             return response()->json([
                 'message' => 'Pagamento criado com sucesso',
                 'data' => $pagamento->load(['cliente', 'assinatura.plano']),
@@ -196,6 +200,9 @@ class PagamentoController extends Controller
                     $pagamento->cliente_id,
                     'pagamento'
                 );
+
+                // Envia e-mail aos admins confirmando o pagamento
+                (new EmailNotificacaoService())->pagamentoConcluidoAdmins($pagamento->load('cliente'));
             }
 
             return response()->json([
@@ -326,6 +333,9 @@ class PagamentoController extends Controller
                 $pagamento->cliente_id,
                 'pagamento'
             );
+
+            // Envia e-mail aos admins confirmando o pagamento
+            (new EmailNotificacaoService())->pagamentoConcluidoAdmins($pagamento->load('cliente'));
 
             return response()->json([
                 'message' => 'Pagamento marcado como pago',

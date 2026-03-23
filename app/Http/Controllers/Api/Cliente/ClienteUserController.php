@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Cliente;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Cliente;
+use App\Services\EmailNotificacaoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -81,6 +82,9 @@ class ClienteUserController extends Controller
             ]);
 
             $this->log('INFO', 'Sub-usuário criado', ['user_id' => $user->id, 'owner_cliente_id' => $cliente->id]);
+
+            // Envia e-mail ao novo sub-usuário com as credenciais de acesso
+            (new EmailNotificacaoService())->novoSubUsuario($user, $validated['password']);
 
             return response()->json([
                 'message' => 'Usuário criado com sucesso',

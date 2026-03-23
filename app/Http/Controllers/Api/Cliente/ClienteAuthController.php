@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Cliente;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Cliente;
+use App\Services\EmailNotificacaoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -138,6 +139,13 @@ class ClienteAuthController extends Controller
             $token = $user->createToken('client-api-token')->plainTextToken;
 
             $this->log('INFO', 'Novo cliente registrado', ['user_id' => $user->id, 'cliente_id' => $cliente->id]);
+
+            // Envia e-mails de notificação
+            $emailService = new EmailNotificacaoService();
+            // URL de ativação apontando para o frontend (APP_URL + hash do token do usuário)
+            $activationUrl = config('app.url') . '/ativar-conta?user=' . $user->id . '&token=' . hash('sha256', $user->email . $user->created_at);
+            $emailService->contaCriada($user, $activationUrl);
+            $emailService->novoClienteAdmins($cliente);
 
             return response()->json([
                 'message' => 'Conta criada com sucesso',

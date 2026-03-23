@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Suporte;
+use App\Services\EmailNotificacaoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -58,6 +59,11 @@ class SuporteController extends Controller
                 $suporte->cliente_id,
                 'info'
             );
+
+            // Envia e-mails de notificação
+            $emailService = new EmailNotificacaoService();
+            $emailService->novoChamadoCliente($suporte);
+            $emailService->novoChamadoAdmins($suporte);
 
             return response()->json([
                 'message' => 'Suporte criado com sucesso',

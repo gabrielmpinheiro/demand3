@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Demanda;
 use App\Models\Notificacao;
 use App\Models\Pagamento;
+use App\Services\EmailNotificacaoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -99,6 +100,9 @@ class DemandaController extends Controller
 
             $this->log('INFO', 'Demanda criada com sucesso', ['id' => $demanda->id, 'titulo' => $demanda->titulo]);
 
+            // Envia e-mail ao cliente sobre a nova demanda
+            (new EmailNotificacaoService())->novaDemandaCliente($demanda->load('dominio.cliente'));
+
             return response()->json([
                 'message' => 'Demanda criada com sucesso',
                 'data' => $demanda->load(['dominio.cliente', 'assinatura.plano']),
@@ -164,6 +168,12 @@ class DemandaController extends Controller
                     "Demanda atualizada: {$demanda->titulo}",
                     "O status da demanda foi alterado para: {$statusLabel}",
                     $demanda->id
+                );
+
+                // Envia e-mail ao cliente sobre a mudança de status
+                (new EmailNotificacaoService())->statusDemandaAlterado(
+                    $demanda->load('dominio.cliente'),
+                    $statusAnterior
                 );
             }
 
@@ -270,6 +280,9 @@ class DemandaController extends Controller
             "Sua demanda foi concluída com sucesso.",
             $demanda->id
         );
+
+        // Envia e-mail ao cliente informando a conclusão
+        (new EmailNotificacaoService())->demandaConcluida($demanda->load('dominio.cliente'));
 
         // Check for support auto-completion
         if ($demanda->suporte_id) {
