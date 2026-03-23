@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Cliente;
 use App\Http\Controllers\Controller;
 use App\Models\Suporte;
 use App\Models\Notificacao;
+use App\Services\EmailNotificacaoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -75,7 +76,7 @@ class ClienteSuporteController extends Controller
                 $suporte->save();
             }
 
-            // Notifica admins
+            // Notifica admins no sistema interno
             Notificacao::notificarAdmins(
                 'Novo chamado do cliente',
                 "O cliente {$cliente->nome} abriu um novo chamado: {$validated['mensagem']}",
@@ -83,6 +84,11 @@ class ClienteSuporteController extends Controller
                 $cliente->id,
                 'suporte'
             );
+
+            // Envia e-mails de notificação
+            $emailService = new EmailNotificacaoService();
+            $emailService->novoChamadoCliente($suporte->load('cliente'));
+            $emailService->novoChamadoAdmins($suporte->load('cliente'));
 
             $this->log('INFO', 'Chamado criado pelo cliente', ['id' => $suporte->id, 'cliente' => $cliente->nome, 'arquivos' => count($caminhos)]);
 
