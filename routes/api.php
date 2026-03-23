@@ -112,13 +112,13 @@ use App\Http\Controllers\Api\Cliente\ClienteUserController;
 use App\Http\Controllers\Api\Cliente\ClientePlanoController;
 
 // Rotas públicas do cliente
-Route::prefix('client/auth')->group(function () {
-    Route::post('/login', [ClienteAuthController::class, 'login']);
-    Route::post('/register', [ClienteAuthController::class, 'register']);
+Route::prefix('client/auth')->name('client.auth.')->group(function () {
+    Route::post('/login', [ClienteAuthController::class, 'login'])->name('login');
+    Route::post('/register', [ClienteAuthController::class, 'register'])->name('register');
 });
 
 // Rotas protegidas do cliente
-Route::prefix('client')->middleware(['auth:sanctum', 'ensure.cliente'])->group(function () {
+Route::prefix('client')->name('client.')->middleware(['auth:sanctum', 'ensure.cliente'])->group(function () {
     // Dashboard
     Route::get('/dashboard/stats', [ClienteDashboardController::class, 'stats']);
 
