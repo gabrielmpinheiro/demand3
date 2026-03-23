@@ -92,3 +92,23 @@
 [2026-02-23 13:26:45] [INFO] Demanda atualizada com sucesso {"id":20,"changes":{"status":"concluido"}}
 [2026-02-23 17:06:36] [INFO] Demanda criada com sucesso {"id":23,"titulo":"Demanda teste 3"}
 [2026-02-23 17:08:54] [INFO] Demanda criada com sucesso {"id":24,"titulo":"Teste de demanda"}
+[2026-03-23 13:51:22] [INFO] Demanda criada com sucesso {"id":25,"titulo":"Demanda teste - parceiros"}
+[2026-03-23 13:52:11] [INFO] Demanda atualizada com sucesso {"id":25,"changes":{"status":"em_andamento"}}
+[2026-03-23 13:53:56] [INFO] Demanda atualizada com sucesso {"id":25,"changes":{"status":"em_aprovacao"}}
+[2026-03-23 13:54:01] [INFO] Suporte concluído automaticamente {"suporte_id":12,"trigger_demanda_id":25}
+[2026-03-23 13:54:01] [INFO] Cobrança de chamado gerada {"suporte_id":12,"valor_total":100,"demandas_cobradas":1,"vencimento":"2026-04-07"}
+[2026-03-23 13:54:01] [INFO] Demanda atualizada com sucesso {"id":25,"changes":{"status":"concluido"}}
+[2026-03-23 14:08:03] [INFO] Demanda atualizada com sucesso {"id":23,"changes":{"status":"em_andamento"}}
+[2026-03-23 14:08:03] [INFO] Demanda atualizada com sucesso {"id":24,"changes":{"status":"em_andamento"}}
+[2026-03-23 14:08:03] [INFO] Demanda atualizada com sucesso {"id":24,"changes":{"status":"em_aprovacao"}}
+[2026-03-23 14:08:06] [INFO] Demanda atualizada com sucesso {"id":23,"changes":{"status":"em_aprovacao"}}
+[2026-03-23 14:08:06] [INFO] Suporte concluído automaticamente {"suporte_id":11,"trigger_demanda_id":24}
+[2026-03-23 14:08:06] [INFO] Suporte concluído automaticamente {"suporte_id":11,"trigger_demanda_id":23}
+[2026-03-23 14:08:06] [INFO] Demanda atualizada com sucesso {"id":23,"changes":{"status":"concluido"}}
+[2026-03-23 14:08:06] [INFO] Demanda atualizada com sucesso {"id":24,"changes":{"status":"concluido"}}
+[2026-03-23 14:10:57] [INFO] Demanda criada com sucesso {"id":26,"titulo":"Demanda teste - parceiros - outra"}
+[2026-03-23 14:11:19] [INFO] Demanda atualizada com sucesso {"id":26,"changes":{"status":"em_andamento"}}
+[2026-03-23 14:12:18] [INFO] Demanda atualizada com sucesso {"id":26,"changes":{"status":"em_aprovacao"}}
+[2026-03-23 14:12:22] [INFO] Suporte concluído automaticamente {"suporte_id":13,"trigger_demanda_id":26}
+[2026-03-23 14:12:22] [INFO] Cobrança de chamado gerada {"suporte_id":13,"valor_total":200,"demandas_cobradas":1,"vencimento":"2026-04-07"}
+[2026-03-23 14:12:22] [INFO] Demanda atualizada com sucesso {"id":26,"changes":{"status":"concluido"}}

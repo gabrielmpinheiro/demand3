@@ -12,6 +12,7 @@ import Notifications from "./views/Notifications";
 import Profile from "./views/Profile";
 import SubUsers from "./views/SubUsers";
 import Vault from "./views/Vault";
+import Partnership from "./views/Partnership";
 
 const router = createBrowserRouter([
     {
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
             {
                 path: '/vault',
                 element: <Vault />
+            },
+            {
+                path: '/partnership',
+                element: <Partnership />
             }
         ]
     },

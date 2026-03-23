@@ -26,6 +26,21 @@ class DominioController extends Controller
         file_put_contents($logPath, $logMessage, FILE_APPEND);
     }
 
+    /**
+     * Sanitiza o nome do domínio, removendo http://, https:// e www.
+     */
+    private function sanitizarDominio(string $nome): string
+    {
+        // Remove protocolo
+        $nome = preg_replace('#^https?://#i', '', $nome);
+        // Remove www. inicial
+        $nome = preg_replace('#^www\.#i', '', $nome);
+        // Remove barra final
+        $nome = rtrim($nome, '/');
+
+        return strtolower(trim($nome));
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {
@@ -67,9 +82,20 @@ class DominioController extends Controller
         try {
             $validated = $request->validate([
                 'cliente_id' => 'required|exists:clientes,id',
-                'nome' => 'required|string|max:255|unique:dominios,nome',
+                'nome' => 'required|string|max:255',
                 'status' => 'nullable|in:ativo,inativo,cancelado',
             ]);
+
+            // Sanitiza o nome do domínio
+            $validated['nome'] = $this->sanitizarDominio($validated['nome']);
+
+            // Valida unicidade após sanitização
+            if (\App\Models\Dominio::where('nome', $validated['nome'])->exists()) {
+                return response()->json([
+                    'message' => 'The nome has already been taken.',
+                    'errors' => ['nome' => ['O domínio já está cadastrado.']]
+                ], 422);
+            }
 
             $dominio = Dominio::create($validated);
 
@@ -131,9 +157,22 @@ class DominioController extends Controller
         try {
             $validated = $request->validate([
                 'cliente_id' => 'sometimes|required|exists:clientes,id',
-                'nome' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('dominios')->ignore($dominio->id)],
+                'nome' => 'sometimes|required|string|max:255',
                 'status' => 'nullable|in:ativo,inativo,cancelado',
             ]);
+
+            // Sanitiza o nome do domínio
+            if (isset($validated['nome'])) {
+                $validated['nome'] = $this->sanitizarDominio($validated['nome']);
+
+                // Valida unicidade após sanitização
+                if (\App\Models\Dominio::where('nome', $validated['nome'])->where('id', '!=', $dominio->id)->exists()) {
+                    return response()->json([
+                        'message' => 'The nome has already been taken.',
+                        'errors' => ['nome' => ['O domínio já está cadastrado.']]
+                    ], 422);
+                }
+            }
 
             $dominio->update($validated);
 

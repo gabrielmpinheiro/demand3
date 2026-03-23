@@ -9,6 +9,7 @@ export default function TicketModal({ isOpen, onClose, onSuccess, domains }) {
     const { theme } = useStateContext();
     const [newMsg, setNewMsg] = useState('');
     const [newDomain, setNewDomain] = useState('');
+    const [domainError, setDomainError] = useState('');
     const [files, setFiles] = useState([]);
     const [saving, setSaving] = useState(false);
     const fileInputRef = useRef();
@@ -33,11 +34,19 @@ export default function TicketModal({ isOpen, onClose, onSuccess, domains }) {
 
     const handleSubmit = (ev) => {
         ev.preventDefault();
+
+        // Validação: domínio obrigatório
+        if (!newDomain) {
+            setDomainError('Selecione um domínio antes de abrir o chamado.');
+            return;
+        }
+        setDomainError('');
+
         setSaving(true);
 
         const formData = new FormData();
         formData.append('mensagem', newMsg);
-        if (newDomain) formData.append('dominio_id', newDomain);
+        formData.append('dominio_id', newDomain);
         files.forEach((f, i) => formData.append(`arquivos[${i}]`, f));
 
         axiosClient.post('/suportes', formData, {
@@ -46,6 +55,7 @@ export default function TicketModal({ isOpen, onClose, onSuccess, domains }) {
             .then(() => {
                 setNewMsg('');
                 setNewDomain('');
+                setDomainError('');
                 setFiles([]);
                 onSuccess();
                 onClose();
@@ -59,15 +69,26 @@ export default function TicketModal({ isOpen, onClose, onSuccess, domains }) {
             <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto`}>
                 <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Novo Chamado</h3>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Domain */}
-                    <select
-                        value={newDomain}
-                        onChange={e => setNewDomain(e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-200'}`}
-                    >
-                        <option value="">Sem domínio (geral)</option>
-                        {domains.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
-                    </select>
+                    {/* Domain - obrigatório */}
+                    <div>
+                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                            Domínio <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                            value={newDomain}
+                            onChange={e => { setNewDomain(e.target.value); setDomainError(''); }}
+                            className={`w-full px-4 py-3 border rounded-lg ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-200'} ${domainError ? 'border-red-500' : ''}`}
+                        >
+                            <option value="">Selecione um domínio...</option>
+                            {domains.map(d => <option key={d.id} value={d.id}>{d.nome}</option>)}
+                        </select>
+                        {domainError && (
+                            <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                                {domainError}
+                            </p>
+                        )}
+                    </div>
 
                     {/* Message */}
                     <textarea

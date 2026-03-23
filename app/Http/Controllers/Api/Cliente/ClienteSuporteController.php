@@ -35,7 +35,7 @@ class ClienteSuporteController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'dominio_id' => 'nullable|exists:dominios,id',
+            'dominio_id' => 'required|exists:dominios,id',
             'mensagem' => 'required|string',
             'arquivos' => 'nullable|array',
             'arquivos.*' => 'file|mimes:pdf,docx,doc,xls,xlsx,xd,psd,zip|max:225280', // 220 MB

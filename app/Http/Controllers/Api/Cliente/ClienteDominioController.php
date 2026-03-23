@@ -34,15 +34,26 @@ class ClienteDominioController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'nome' => 'required|string|max:255|unique:dominios,nome',
+            'nome' => 'required|string|max:255',
         ]);
 
         try {
             $cliente = $request->user()->cliente;
 
+            // Sanitiza o nome do domínio
+            $nomeSanitizado = $this->sanitizarDominio($validated['nome']);
+
+            // Valida unicidade após sanitização
+            if (Dominio::where('nome', $nomeSanitizado)->exists()) {
+                return response()->json([
+                    'message' => 'Registro de domínio duplicado.',
+                    'errors' => ['nome' => ['Este domínio já está cadastrado.']]
+                ], 422);
+            }
+
             $dominio = Dominio::create([
                 'cliente_id' => $cliente->id,
-                'nome' => $validated['nome'],
+                'nome' => $nomeSanitizado,
                 'status' => 'ativo',
             ]);
 
@@ -80,10 +91,25 @@ class ClienteDominioController extends Controller
         }
 
         $validated = $request->validate([
-            'nome' => 'sometimes|required|string|max:255|unique:dominios,nome,' . $dominio->id,
+            'nome' => 'sometimes|required|string|max:255',
         ]);
 
         try {
+            // Sanitiza o nome do domínio se fornecido
+            if (isset($validated['nome'])) {
+                $nomeSanitizado = $this->sanitizarDominio($validated['nome']);
+
+                // Valida unicidade após sanitização
+                if (Dominio::where('nome', $nomeSanitizado)->where('id', '!=', $dominio->id)->exists()) {
+                    return response()->json([
+                        'message' => 'Registro de domínio duplicado.',
+                        'errors' => ['nome' => ['Este domínio já está cadastrado.']]
+                    ], 422);
+                }
+
+                $validated['nome'] = $nomeSanitizado;
+            }
+
             $dominio->update($validated);
             $this->log('INFO', 'Domínio atualizado pelo cliente', ['id' => $dominio->id]);
 
@@ -132,5 +158,16 @@ class ClienteDominioController extends Controller
         $timestamp = now()->format('Y-m-d H:i:s');
         $logEntry = "[{$timestamp}] [{$type}] {$message} " . json_encode($data) . PHP_EOL;
         file_put_contents($logPath, $logEntry, FILE_APPEND);
+    }
+
+    /**
+     * Sanitiza o nome do domínio, removendo http://, https:// e www.
+     */
+    private function sanitizarDominio(string $nome): string
+    {
+        $nome = preg_replace('#^https?://#i', '', $nome);
+        $nome = preg_replace('#^www\.#i', '', $nome);
+        $nome = rtrim($nome, '/');
+        return strtolower(trim($nome));
     }
 }

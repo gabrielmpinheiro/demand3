@@ -54,6 +54,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Clientes
     Route::apiResource('clientes', ClienteController::class);
+    Route::post('clientes/{cliente}/toggle-parceiro', [ClienteController::class, 'toggleParceiro']);
+    Route::get('clientes/{cliente}/parceria-stats', [ClienteController::class, 'parceriaStats']);
 
     // Domínios
     Route::apiResource('dominios', DominioController::class);

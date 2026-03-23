@@ -34,6 +34,10 @@ class ClienteController extends Controller
                 $query->where('status', $request->status);
             }
 
+            if ($request->has('is_parceiro')) {
+                $query->where('is_parceiro', filter_var($request->is_parceiro, FILTER_VALIDATE_BOOLEAN));
+            }
+
             if ($request->has('search')) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
@@ -121,14 +125,19 @@ class ClienteController extends Controller
                 'nome' => $cliente->nome
             ], 'Cliente visualizado com sucesso');
 
-            return response()->json([
-                'data' => $cliente->load([
-                    'dominios',
-                    'assinaturas.plano',
-                    'pagamentos',
-                    'vaults',
-                ]),
+            $data = $cliente->load([
+                'dominios',
+                'assinaturas.plano',
+                'pagamentos',
+                'vaults',
             ]);
+
+            $response = $data->toArray();
+            if ($cliente->is_parceiro) {
+                $response['parceria_stats'] = $cliente->parceria_stats;
+            }
+
+            return response()->json(['data' => $response]);
         } catch (\Exception $e) {
             $this->logClientAction('ERROR', 'SHOW', [
                 'id' => $cliente->id ?? 'N/A'
@@ -156,6 +165,11 @@ class ClienteController extends Controller
                 'inscricao_estadual' => 'nullable|string|max:50',
                 'inscricao_municipal' => 'nullable|string|max:50',
                 'status' => 'nullable|in:ativo,inativo,cancelado',
+                'is_parceiro' => 'nullable|boolean',
+                'parceria_inicio' => 'nullable|date',
+                'parceria_fim' => 'nullable|date|after_or_equal:parceria_inicio',
+                'valor_hora_avulsa' => 'nullable|numeric|min:0',
+                'valor_hora_subsidiada' => 'nullable|numeric|min:0',
             ]);
 
             $cliente->update($validated);
@@ -211,5 +225,58 @@ class ClienteController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Ativa/desativa o status de parceiro de um cliente e configura os valores
+     */
+    public function toggleParceiro(Request $request, Cliente $cliente): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'is_parceiro' => 'required|boolean',
+                'parceria_inicio' => 'nullable|date',
+                'parceria_fim' => 'nullable|date|after_or_equal:parceria_inicio',
+                'valor_hora_avulsa' => 'nullable|numeric|min:0',
+                'valor_hora_subsidiada' => 'nullable|numeric|min:0',
+            ]);
+
+            $cliente->update($validated);
+
+            $action = $validated['is_parceiro'] ? 'ATIVADO' : 'DESATIVADO';
+            $this->logClientAction('INFO', "PARCEIRO_{$action}", [
+                'id' => $cliente->id,
+                'nome' => $cliente->nome,
+            ], "Parceria {$action} com sucesso");
+
+            return response()->json([
+                'message' => 'Configuração de parceria atualizada com sucesso',
+                'data' => $cliente->fresh()->load(['dominios', 'assinaturas.plano']),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            $this->logClientAction('ERROR', 'TOGGLE_PARCEIRO', [
+                'id' => $cliente->id
+            ], 'Erro ao configurar parceria: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Erro ao configurar parceria',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Retorna as métricas de parceria de um cliente
+     */
+    public function parceriaStats(Cliente $cliente): JsonResponse
+    {
+        if (!$cliente->is_parceiro) {
+            return response()->json(['message' => 'Cliente não é parceiro'], 422);
+        }
+
+        return response()->json([
+            'data' => $cliente->parceria_stats,
+        ]);
     }
 }

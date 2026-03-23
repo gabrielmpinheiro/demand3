@@ -102,6 +102,13 @@ export default function Clients() {
         { key: 'cidade', label: 'Cidade' },
         { key: 'estado', label: 'Estado' },
         {
+            key: 'is_parceiro',
+            label: 'Parceiro',
+            render: (val) => val ? (
+                <span className="px-2 py-1 rounded text-xs font-semibold bg-purple-100 text-purple-800">Parceiro</span>
+            ) : null
+        },
+        {
             key: 'status',
             label: 'Status',
             render: (val) => (

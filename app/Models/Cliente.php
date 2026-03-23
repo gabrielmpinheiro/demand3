@@ -26,12 +26,22 @@ class Cliente extends Model
         'inscricao_estadual',
         'inscricao_municipal',
         'status',
+        'is_parceiro',
+        'parceria_inicio',
+        'parceria_fim',
+        'valor_hora_avulsa',
+        'valor_hora_subsidiada',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'is_parceiro' => 'boolean',
+        'parceria_inicio' => 'date',
+        'parceria_fim' => 'date',
+        'valor_hora_avulsa' => 'decimal:2',
+        'valor_hora_subsidiada' => 'decimal:2',
     ];
 
     public function user(): BelongsTo
@@ -72,5 +82,25 @@ class Cliente extends Model
     public function scopeAtivo($query)
     {
         return $query->where('status', 'ativo');
+    }
+
+    public function scopeParceiro($query)
+    {
+        return $query->where('is_parceiro', true);
+    }
+
+    public function getParceriaStatsAttribute(): array
+    {
+        $chamadosGerados  = $this->suportes()->count();
+        $chamadosConcluidos = $this->suportes()->where('status', 'concluido')->count();
+        $demandasGeradas  = \App\Models\Demanda::whereIn('dominio_id', $this->dominios()->pluck('id'))->count();
+        $demandasConcluidas = \App\Models\Demanda::whereIn('dominio_id', $this->dominios()->pluck('id'))->where('status', 'concluido')->count();
+
+        return [
+            'chamados_gerados'    => $chamadosGerados,
+            'chamados_concluidos' => $chamadosConcluidos,
+            'demandas_geradas'    => $demandasGeradas,
+            'demandas_concluidas' => $demandasConcluidas,
+        ];
     }
 }
