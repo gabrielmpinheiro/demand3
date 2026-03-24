@@ -57,7 +57,7 @@ class PagamentoController extends Controller
                 });
             }
 
-            $pagamentos = $query->with(['cliente', 'assinatura.plano', 'assinatura.dominio'])
+            $pagamentos = $query->with(['cliente', 'assinatura.plano', 'assinatura.dominio', 'suporte.dominio'])
                 ->orderBy('data_vencimento', 'desc')
                 ->paginate($request->get('per_page', 15));
 
@@ -79,6 +79,7 @@ class PagamentoController extends Controller
             $validated = $request->validate([
                 'cliente_id' => 'required|exists:clientes,id',
                 'assinatura_id' => 'nullable|exists:assinaturas,id',
+                'suporte_id' => 'nullable|exists:suportes,id',
                 'valor' => 'required|numeric|min:0',
                 'valor_horas_avulsas' => 'nullable|numeric|min:0',
                 'status' => 'nullable|in:aberto,pago,cancelado',
@@ -134,7 +135,7 @@ class PagamentoController extends Controller
             ], 'Pagamento visualizado com sucesso');
 
             return response()->json([
-                'data' => $pagamento->load(['cliente', 'assinatura.plano', 'assinatura.dominio']),
+                'data' => $pagamento->load(['cliente', 'assinatura.plano', 'assinatura.dominio', 'suporte.dominio']),
             ]);
         } catch (\Exception $e) {
             $this->logPaymentAction('ERROR', 'SHOW', [
@@ -153,6 +154,7 @@ class PagamentoController extends Controller
             $validated = $request->validate([
                 'cliente_id' => 'sometimes|required|exists:clientes,id',
                 'assinatura_id' => 'nullable|exists:assinaturas,id',
+                'suporte_id' => 'nullable|exists:suportes,id',
                 'valor' => 'sometimes|required|numeric|min:0',
                 'valor_horas_avulsas' => 'nullable|numeric|min:0',
                 'status' => 'nullable|in:aberto,pago,cancelado',

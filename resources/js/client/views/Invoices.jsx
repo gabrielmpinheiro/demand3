@@ -144,7 +144,9 @@ export default function Invoices() {
                                 <div>
                                     <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Fatura #{inv.id}</p>
                                     <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                        {inv.assinatura?.dominio?.nome || inv.suporte?.dominio?.nome || 'N/A'} • {inv.referencia_mes || 'N/A'}
+                                        {inv.assinatura?.dominio?.nome || inv.suporte?.dominio?.nome || 'N/A'}
+                                        {inv.referencia_mes ? ` • ${inv.referencia_mes}` : ''}
+                                        {inv.suporte && ` • Chamado #${inv.suporte.id} - ${inv.suporte.mensagem?.substring(0, 30)}...`}
                                     </p>
                                     <p className={`text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                                         Vencimento: {inv.data_vencimento ? new Date(inv.data_vencimento).toLocaleDateString('pt-BR') : 'N/A'}

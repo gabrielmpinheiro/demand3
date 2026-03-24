@@ -12,12 +12,14 @@ export default function PaymentModal({ isOpen, onClose, onSave, payment }) {
         forma_pagamento: '',
         referencia_mes: '',
         descricao: '',
+        suporte_id: '',
         status: 'aberto',
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [clients, setClients] = useState([]);
     const [subscriptions, setSubscriptions] = useState([]);
+    const [tickets, setTickets] = useState([]);
     const [loadingData, setLoadingData] = useState(false);
     const [isDemandaAvulsa, setIsDemandaAvulsa] = useState(false);
 
@@ -37,6 +39,15 @@ export default function PaymentModal({ isOpen, onClose, onSave, payment }) {
         }
     }, [formData.cliente_id, isDemandaAvulsa]);
 
+    // Carregar chamados quando selecionar cliente
+    useEffect(() => {
+        if (formData.cliente_id) {
+            fetchTickets(formData.cliente_id);
+        } else {
+            setTickets([]);
+        }
+    }, [formData.cliente_id]);
+
     // Preencher form ao editar
     useEffect(() => {
         if (payment) {
@@ -50,6 +61,7 @@ export default function PaymentModal({ isOpen, onClose, onSave, payment }) {
                 forma_pagamento: payment.forma_pagamento || '',
                 referencia_mes: payment.referencia_mes || '',
                 descricao: payment.descricao || '',
+                suporte_id: payment.suporte_id || '',
                 status: payment.status || 'aberto',
             });
             setIsDemandaAvulsa(!payment.assinatura_id);
@@ -69,6 +81,7 @@ export default function PaymentModal({ isOpen, onClose, onSave, payment }) {
                 forma_pagamento: '',
                 referencia_mes: currentMonth,
                 descricao: '',
+                suporte_id: '',
                 status: 'aberto',
             });
             setIsDemandaAvulsa(false);
@@ -94,6 +107,15 @@ export default function PaymentModal({ isOpen, onClose, onSave, payment }) {
             setSubscriptions(data.data || []);
         } catch (error) {
             console.error('Erro ao carregar assinaturas:', error);
+        }
+    };
+
+    const fetchTickets = async (clienteId) => {
+        try {
+            const { data } = await axiosClient.get(`/suportes?cliente_id=${clienteId}&per_page=100`);
+            setTickets(data.data || []);
+        } catch (error) {
+            console.error('Erro ao carregar chamados:', error);
         }
     };
 
@@ -267,6 +289,29 @@ export default function PaymentModal({ isOpen, onClose, onSave, payment }) {
                                     )}
                                 </div>
                             )}
+
+                            {/* Chamado Vinculado (Opcional) */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Chamado Vinculado (Opcional)
+                                </label>
+                                <select
+                                    name="suporte_id"
+                                    value={formData.suporte_id}
+                                    onChange={handleChange}
+                                    disabled={!formData.cliente_id}
+                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 border-gray-300 ${!formData.cliente_id ? 'bg-gray-100' : ''}`}
+                                >
+                                    <option value="">
+                                        {!formData.cliente_id ? 'Selecione um cliente primeiro' : 'Nenhum chamado (Opcional)'}
+                                    </option>
+                                    {tickets.map(ticket => (
+                                        <option key={ticket.id} value={ticket.id}>
+                                            #{ticket.id} - {ticket.mensagem?.substring(0, 50) || 'Sem mensagem'}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
                             {/* Valores */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
