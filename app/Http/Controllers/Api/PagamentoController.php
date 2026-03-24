@@ -57,7 +57,7 @@ class PagamentoController extends Controller
                 });
             }
 
-            $pagamentos = $query->with(['cliente', 'assinatura.plano', 'assinatura.dominio', 'suporte.dominio'])
+            $pagamentos = $query->with(['cliente', 'assinatura.plano', 'assinatura.dominio', 'suporte.dominio', 'dominio'])
                 ->orderBy('data_vencimento', 'desc')
                 ->paginate($request->get('per_page', 15));
 
@@ -135,7 +135,7 @@ class PagamentoController extends Controller
             ], 'Pagamento visualizado com sucesso');
 
             return response()->json([
-                'data' => $pagamento->load(['cliente', 'assinatura.plano', 'assinatura.dominio', 'suporte.dominio']),
+                'data' => $pagamento->load(['cliente', 'assinatura.plano', 'assinatura.dominio', 'suporte.dominio', 'dominio']),
             ]);
         } catch (\Exception $e) {
             $this->logPaymentAction('ERROR', 'SHOW', [

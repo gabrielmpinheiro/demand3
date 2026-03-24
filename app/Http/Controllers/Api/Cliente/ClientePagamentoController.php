@@ -39,7 +39,7 @@ class ClientePagamentoController extends Controller
             });
         }
 
-        $pagamentos = $query->with(['assinatura.plano', 'assinatura.dominio', 'suporte.dominio'])
+        $pagamentos = $query->with(['assinatura.plano', 'assinatura.dominio', 'suporte.dominio', 'dominio'])
             ->orderBy('data_vencimento', 'desc')
             ->paginate($request->get('per_page', 15));
 

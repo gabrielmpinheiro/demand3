@@ -17,9 +17,9 @@ export default function InvoiceDetailModal({ isOpen, onClose, invoice }) {
 
     const rows = [
         { label: 'Fatura #', value: invoice.id },
-        { label: 'Domínio', value: invoice.assinatura?.dominio?.nome || invoice.suporte?.dominio?.nome || 'N/A' },
+        { label: 'Domínio', value: invoice.dominio?.nome || invoice.assinatura?.dominio?.nome || invoice.suporte?.dominio?.nome || 'N/A' },
         { label: 'Chamado vinculado', value: invoice.suporte ? `#${invoice.suporte.id} – ${invoice.suporte.mensagem?.substring(0, 60) || ''}` : 'Nenhum' },
-        { label: 'Referência', value: invoice.suporte ? `Chamado #${invoice.suporte.id} - ${invoice.suporte.mensagem?.substring(0, 40) || ''}` : (invoice.referencia_mes || 'N/A') },
+        { label: 'Referência', value: invoice.referencia ? invoice.referencia : (invoice.suporte ? `Chamado #${invoice.suporte.id} - ${invoice.suporte.mensagem?.substring(0, 40) || ''}` : (invoice.referencia_mes || 'N/A')) },
         { label: 'Data de vencimento', value: invoice.data_vencimento ? new Date(invoice.data_vencimento).toLocaleDateString('pt-BR') : 'N/A' },
         { label: 'Valor', value: `R$ ${parseFloat(invoice.valor || 0).toFixed(2).replace('.', ',')}` },
         { label: 'Status', value: statusLabel(invoice.status), badge: statusColor(invoice.status) },

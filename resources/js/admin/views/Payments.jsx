@@ -173,9 +173,9 @@ export default function Payments() {
             render: (_, payment) => payment.cliente?.nome || '-'
         },
         {
-            key: 'assinatura',
-            label: 'Assinatura',
-            render: (_, payment) => payment.assinatura?.dominio?.nome || 'Avulso'
+            key: 'dominio',
+            label: 'Domínio',
+            render: (_, payment) => payment.dominio?.nome || payment.assinatura?.dominio?.nome || '-'
         },
         {
             key: 'valor',
@@ -183,9 +183,9 @@ export default function Payments() {
             render: (val) => formatCurrency(val)
         },
         {
-            key: 'referencia_mes',
-            label: 'Período',
-            render: (val) => val || '-'
+            key: 'referencia',
+            label: 'Referência',
+            render: (_, payment) => payment.referencia || payment.referencia_mes || '-'
         },
         {
             key: 'data_vencimento',

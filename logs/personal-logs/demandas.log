@@ -112,3 +112,17 @@
 [2026-03-23 14:12:22] [INFO] Suporte concluído automaticamente {"suporte_id":13,"trigger_demanda_id":26}
 [2026-03-23 14:12:22] [INFO] Cobrança de chamado gerada {"suporte_id":13,"valor_total":200,"demandas_cobradas":1,"vencimento":"2026-04-07"}
 [2026-03-23 14:12:22] [INFO] Demanda atualizada com sucesso {"id":26,"changes":{"status":"concluido"}}
+[2026-03-24 13:17:20] [INFO] Demanda criada com sucesso {"id":27,"titulo":"Transformar layout Figma > HTML"}
+[2026-03-24 13:18:12] [INFO] Demanda criada com sucesso {"id":28,"titulo":"Programa\u00e7\u00e3o do Layout > Wordpress"}
+[2026-03-24 13:18:54] [INFO] Demanda criada com sucesso {"id":29,"titulo":"Testes e entrega do site"}
+[2026-03-24 13:27:10] [INFO] Demanda atualizada com sucesso {"id":27,"changes":{"status":"em_andamento"}}
+[2026-03-24 13:27:30] [INFO] Demanda atualizada com sucesso {"id":29,"changes":{"status":"em_andamento"}}
+[2026-03-24 13:27:30] [INFO] Demanda atualizada com sucesso {"id":28,"changes":{"status":"em_andamento"}}
+[2026-03-24 13:27:37] [INFO] Demanda atualizada com sucesso {"id":28,"changes":{"status":"em_aprovacao"}}
+[2026-03-24 13:29:51] [INFO] Demanda atualizada com sucesso {"id":27,"changes":{"status":"em_aprovacao"}}
+[2026-03-24 13:29:52] [INFO] Demanda atualizada com sucesso {"id":28,"changes":{"status":"concluido"}}
+[2026-03-24 13:30:19] [INFO] Demanda atualizada com sucesso {"id":29,"changes":{"status":"em_aprovacao"}}
+[2026-03-24 13:30:19] [INFO] Demanda atualizada com sucesso {"id":27,"changes":{"status":"concluido"}}
+[2026-03-24 13:31:08] [INFO] Suporte concluído automaticamente {"suporte_id":14,"trigger_demanda_id":29}
+[2026-03-24 13:31:08] [INFO] Cobrança de chamado gerada {"suporte_id":14,"valor_total":2200,"demandas_cobradas":3,"vencimento":"2026-04-08"}
+[2026-03-24 13:31:08] [INFO] Demanda atualizada com sucesso {"id":29,"changes":{"status":"concluido"}}

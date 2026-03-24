@@ -360,9 +360,11 @@ class DemandaController extends Controller
         Pagamento::create([
             'cliente_id' => $clienteId,
             'assinatura_id' => $demanda->assinatura_id,
+            'dominio_id' => $demanda->dominio_id,
             'valor' => $valorCobrar,
             'status' => 'aberto',
             'data_vencimento' => $vencimento,
+            'referencia' => "Demanda avulsa #{$demanda->id} - " . \Illuminate\Support\Str::limit($demanda->titulo, 50),
             'descricao' => "{$descricaoTipo}: {$demanda->titulo}",
         ]);
 
@@ -417,11 +419,17 @@ class DemandaController extends Controller
         $vencimento = Carbon::now()->addDays(15);
         $descricaoTipo = $temAssinatura ? 'Excedente de horas' : 'Demandas avulsas';
 
+        $primeiraDemanda = $demandasNaoCobradas->first();
+        $tituloRef = $primeiraDemanda ? ' - ' . \Illuminate\Support\Str::limit($primeiraDemanda->titulo, 50) : '';
+
         Pagamento::create([
             'cliente_id' => $clienteId,
+            'suporte_id' => $suporte->id,
+            'dominio_id' => $suporte->dominio_id ?? $primeiraDemanda?->dominio_id,
             'valor' => round($valorTotal, 2),
             'status' => 'aberto',
             'data_vencimento' => $vencimento,
+            'referencia' => "Chamado #{$suporte->id}{$tituloRef}",
             'descricao' => "{$descricaoTipo} — Chamado #{$suporte->id}",
         ]);
 
