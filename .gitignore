@@ -36,3 +36,5 @@ yarn-error.log
 *.sw?
 .DS_Store
 Thumbs.db
+logs/personal-logs/cliente-auth.log
+logs/personal-logs/cliente-login.log
