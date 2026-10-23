@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useStateContext } from "../contexts/ContextProvider";
 import axiosClient from "../axios-client";
+import { isFeatureEnabled } from "../config/features";
 
 export default function Dashboard() {
     const { theme } = useStateContext();
@@ -42,7 +43,7 @@ export default function Dashboard() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 ${isFeatureEnabled('invoices') ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
                 <div className={cardClass}>
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
@@ -54,17 +55,19 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
-                <div className={cardClass}>
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
-                            <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>
-                        </div>
-                        <div>
-                            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Faturas Pendentes</p>
-                            <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{stats?.faturas_pendentes || 0}</p>
+                {isFeatureEnabled('invoices') && (
+                    <div className={cardClass}>
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>
+                            </div>
+                            <div>
+                                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Faturas Pendentes</p>
+                                <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{stats?.faturas_pendentes || 0}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
                 <div className={cardClass}>
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">

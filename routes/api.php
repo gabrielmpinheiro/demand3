@@ -60,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Domínios
     Route::apiResource('dominios', DominioController::class);
+    Route::post('dominios/{dominio}/atribuir-plano', [DominioController::class, 'atribuirPlano']);
 
     // Planos
     Route::apiResource('planos', PlanoController::class);

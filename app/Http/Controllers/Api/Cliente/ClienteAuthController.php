@@ -179,6 +179,7 @@ class ClienteAuthController extends Controller
     {
         return response()->json([
             'data' => $request->user()->load('cliente'),
+            'features' => config('features.client', []),
         ]);
     }
 

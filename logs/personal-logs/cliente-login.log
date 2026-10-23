@@ -41,3 +41,8 @@
 [2026-10-22 19:33:17] Tentativa de login cliente: gabrielmpinheiro@gmail.com
 [2026-10-22 19:33:17] SUCESSO: Login cliente realizado.
 ----------------------------------------
+[2026-10-23 16:59:17] Tentativa de login cliente: gabrielmpinheiro2@gmail.com
+[2026-10-23 16:59:17] ERRO: Usuário não é cliente (role: admin).
+[2026-10-23 16:59:27] Tentativa de login cliente: gabrielmpinheiro@gmail.com
+[2026-10-23 16:59:27] SUCESSO: Login cliente realizado.
+----------------------------------------

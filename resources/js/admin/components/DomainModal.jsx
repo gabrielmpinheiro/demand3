@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 
-export default function DomainModal({ isOpen, onClose, onSave, domain, clienteId }) {
+export default function DomainModal({ isOpen, onClose, onSave, domain, clienteId, plans = [] }) {
     const [formData, setFormData] = useState({
         nome: '',
         status: 'ativo',
         cliente_id: clienteId || null,
+        plano_id: '',
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
@@ -16,6 +17,7 @@ export default function DomainModal({ isOpen, onClose, onSave, domain, clienteId
                 nome: domain.nome || '',
                 status: domain.status || 'ativo',
                 cliente_id: domain.cliente_id || clienteId,
+                plano_id: domain.assinatura?.plano_id || '',
             });
         } else {
             // Modo criação
@@ -23,6 +25,7 @@ export default function DomainModal({ isOpen, onClose, onSave, domain, clienteId
                 nome: '',
                 status: 'ativo',
                 cliente_id: clienteId || null,
+                plano_id: '',
             });
         }
         setErrors({});
@@ -121,6 +124,29 @@ export default function DomainModal({ isOpen, onClose, onSave, domain, clienteId
                             <option value="inativo">Inativo</option>
                             <option value="cancelado">Cancelado</option>
                         </select>
+                    </div>
+
+                    {/* Plano Atribuído */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Plano do Domínio
+                        </label>
+                        <select
+                            name="plano_id"
+                            value={formData.plano_id}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Nenhum plano (Sem plano)</option>
+                            {plans.map(p => (
+                                <option key={p.id} value={p.id}>
+                                    {p.nome} - R$ {Number(p.preco || 0).toFixed(2).replace('.', ',')}/mês ({p.limite_horas_tecnicas}h)
+                                </option>
+                            ))}
+                        </select>
+                        <p className="text-gray-500 text-xs mt-1">
+                            Define o plano e o limite mensal de horas técnicas para este domínio.
+                        </p>
                     </div>
 
                     {/* Footer */}

@@ -13,6 +13,7 @@ import Profile from "./views/Profile";
 import SubUsers from "./views/SubUsers";
 import Vault from "./views/Vault";
 import Partnership from "./views/Partnership";
+import { isFeatureEnabled } from "./config/features";
 
 const router = createBrowserRouter([
     {
@@ -37,7 +38,7 @@ const router = createBrowserRouter([
             },
             {
                 path: '/invoices',
-                element: <Invoices />
+                element: isFeatureEnabled('invoices') ? <Invoices /> : <Navigate to="/dashboard" replace />
             },
             {
                 path: '/tickets',

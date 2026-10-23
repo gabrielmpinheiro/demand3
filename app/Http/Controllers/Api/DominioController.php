@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Dominio;
+use App\Models\Assinatura;
+use App\Models\Plano;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -84,6 +86,7 @@ class DominioController extends Controller
                 'cliente_id' => 'required|exists:clientes,id',
                 'nome' => 'required|string|max:255',
                 'status' => 'nullable|in:ativo,inativo,cancelado',
+                'plano_id' => 'nullable|exists:planos,id',
             ]);
 
             // Sanitiza o nome do domínio
@@ -97,17 +100,35 @@ class DominioController extends Controller
                 ], 422);
             }
 
+            $planoId = $validated['plano_id'] ?? null;
+            unset($validated['plano_id']);
+
             $dominio = Dominio::create($validated);
+
+            if (!empty($planoId)) {
+                $plano = Plano::find($planoId);
+                if ($plano) {
+                    Assinatura::create([
+                        'cliente_id' => $dominio->cliente_id,
+                        'dominio_id' => $dominio->id,
+                        'plano_id' => $plano->id,
+                        'horas_disponiveis' => $plano->limite_horas_tecnicas,
+                        'status' => 'ativo',
+                        'data_inicio' => now(),
+                    ]);
+                }
+            }
 
             $this->logDomainAction('INFO', 'CREATE', [
                 'id' => $dominio->id,
                 'nome' => $dominio->nome,
-                'cliente_id' => $dominio->cliente_id
+                'cliente_id' => $dominio->cliente_id,
+                'plano_id' => $planoId
             ], 'Domínio criado com sucesso');
 
             return response()->json([
                 'message' => 'Domínio criado com sucesso',
-                'data' => $dominio->load(['cliente', 'assinatura.plano']),
+                'data' => $dominio->fresh()->load(['cliente', 'assinatura.plano']),
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->logDomainAction('ERROR', 'CREATE', [
@@ -159,6 +180,7 @@ class DominioController extends Controller
                 'cliente_id' => 'sometimes|required|exists:clientes,id',
                 'nome' => 'sometimes|required|string|max:255',
                 'status' => 'nullable|in:ativo,inativo,cancelado',
+                'plano_id' => 'nullable',
             ]);
 
             // Sanitiza o nome do domínio
@@ -174,12 +196,21 @@ class DominioController extends Controller
                 }
             }
 
+            $hasPlanoInput = array_key_exists('plano_id', $validated) || $request->has('plano_id');
+            $planoId = $request->input('plano_id');
+            unset($validated['plano_id']);
+
             $dominio->update($validated);
+
+            if ($hasPlanoInput) {
+                $this->sincronizarPlanoDominio($dominio, $planoId);
+            }
 
             $this->logDomainAction('INFO', 'UPDATE', [
                 'id' => $dominio->id,
                 'nome' => $dominio->nome,
-                'cliente_id' => $dominio->cliente_id
+                'cliente_id' => $dominio->cliente_id,
+                'plano_id' => $planoId
             ], 'Domínio atualizado com sucesso');
 
             return response()->json([
@@ -198,6 +229,82 @@ class DominioController extends Controller
             return response()->json([
                 'message' => 'Erro ao atualizar domínio',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Sincroniza o plano atribuído a um domínio
+     */
+    private function sincronizarPlanoDominio(Dominio $dominio, $planoId): void
+    {
+        $assinaturaAtiva = $dominio->assinatura;
+
+        if (empty($planoId)) {
+            if ($assinaturaAtiva) {
+                $assinaturaAtiva->status = 'cancelado';
+                $assinaturaAtiva->save();
+            }
+            return;
+        }
+
+        $plano = Plano::find($planoId);
+        if (!$plano) {
+            return;
+        }
+
+        if ($assinaturaAtiva) {
+            if ($assinaturaAtiva->plano_id != $plano->id) {
+                $assinaturaAtiva->plano_id = $plano->id;
+                $assinaturaAtiva->horas_disponiveis = $plano->limite_horas_tecnicas;
+                $assinaturaAtiva->status = 'ativo';
+                $assinaturaAtiva->save();
+            }
+        } else {
+            Assinatura::create([
+                'cliente_id' => $dominio->cliente_id,
+                'dominio_id' => $dominio->id,
+                'plano_id' => $plano->id,
+                'horas_disponiveis' => $plano->limite_horas_tecnicas,
+                'status' => 'ativo',
+                'data_inicio' => now(),
+            ]);
+        }
+    }
+
+    /**
+     * Endpoint direto para atribuir ou desvincular plano a um domínio
+     */
+    public function atribuirPlano(Request $request, Dominio $dominio): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'plano_id' => 'nullable|exists:planos,id',
+            ]);
+
+            $planoId = $request->input('plano_id');
+            $this->sincronizarPlanoDominio($dominio, $planoId);
+
+            $this->logDomainAction('INFO', 'ASSIGN_PLAN', [
+                'id' => $dominio->id,
+                'nome' => $dominio->nome,
+                'plano_id' => $planoId
+            ], 'Plano atribuído ao domínio');
+
+            return response()->json([
+                'message' => $planoId ? 'Plano atribuído com sucesso' : 'Plano desvinculado com sucesso',
+                'data' => $dominio->fresh()->load(['cliente', 'assinatura.plano']),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            $this->logDomainAction('ERROR', 'ASSIGN_PLAN', [
+                'id' => $dominio->id
+            ], 'Erro ao atribuir plano: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Erro ao atribuir plano ao domínio',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

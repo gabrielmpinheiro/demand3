@@ -35,52 +35,9 @@ class ClienteAssinaturaController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'dominio_id' => 'required|exists:dominios,id',
-            'plano_id' => 'required|exists:planos,id',
-        ]);
-
-        try {
-            $cliente = $request->user()->cliente;
-            $dominio = Dominio::findOrFail($validated['dominio_id']);
-
-            // Verifica se o domínio pertence ao cliente
-            if ($dominio->cliente_id !== $cliente->id) {
-                return response()->json(['message' => 'Acesso negado'], 403);
-            }
-
-            // Verifica se já tem assinatura ativa
-            if ($dominio->assinatura) {
-                return response()->json([
-                    'message' => 'Este domínio já possui uma assinatura ativa.',
-                ], 422);
-            }
-
-            $plano = Plano::findOrFail($validated['plano_id']);
-
-            $assinatura = Assinatura::create([
-                'cliente_id' => $cliente->id,
-                'dominio_id' => $dominio->id,
-                'plano_id' => $plano->id,
-                'horas_disponiveis' => $plano->limite_horas_tecnicas,
-                'status' => 'ativo',
-                'data_inicio' => now(),
-            ]);
-
-            $this->log('INFO', 'Assinatura criada pelo cliente', [
-                'id' => $assinatura->id,
-                'dominio' => $dominio->nome,
-                'plano' => $plano->nome,
-            ]);
-
-            return response()->json([
-                'message' => 'Plano assinado com sucesso',
-                'data' => $assinatura->load(['plano', 'dominio']),
-            ], 201);
-        } catch (\Exception $e) {
-            $this->log('ERROR', 'Erro ao assinar plano', ['error' => $e->getMessage()]);
-            return response()->json(['message' => 'Erro ao assinar plano'], 500);
-        }
+        return response()->json([
+            'message' => 'A contratação e atribuição de planos aos domínios é realizada exclusivamente pela administração.',
+        ], 403);
     }
 
     private function log(string $type, string $message, array $data = []): void

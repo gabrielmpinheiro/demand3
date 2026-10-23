@@ -11,6 +11,13 @@ class ClientePagamentoController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        if (!config('features.client.invoices', false)) {
+            return response()->json([
+                'message' => 'A área de faturas está temporariamente desativada.',
+                'data' => [],
+            ], 403);
+        }
+
         $cliente = $request->user()->cliente;
 
         $query = Pagamento::where('cliente_id', $cliente->id);
@@ -52,6 +59,12 @@ class ClientePagamentoController extends Controller
      */
     public function marcarPendente(Request $request, Pagamento $pagamento): JsonResponse
     {
+        if (!config('features.client.invoices', false)) {
+            return response()->json([
+                'message' => 'A área de faturas está temporariamente desativada.',
+            ], 403);
+        }
+
         $cliente = $request->user()->cliente;
 
         if ($pagamento->cliente_id !== $cliente->id) {
