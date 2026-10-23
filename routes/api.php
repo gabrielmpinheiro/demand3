@@ -56,6 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('clientes', ClienteController::class);
     Route::post('clientes/{cliente}/toggle-parceiro', [ClienteController::class, 'toggleParceiro']);
     Route::get('clientes/{cliente}/parceria-stats', [ClienteController::class, 'parceriaStats']);
+    Route::post('clientes/{cliente}/provisionar-acesso', [ClienteController::class, 'provisionarAcesso']);
 
     // Domínios
     Route::apiResource('dominios', DominioController::class);
@@ -114,7 +115,8 @@ use App\Http\Controllers\Api\Cliente\ClientePlanoController;
 // Rotas públicas do cliente
 Route::group(['prefix' => 'client/auth', 'as' => 'client.auth.'], function () {
     Route::post('/login', [ClienteAuthController::class, 'login'])->name('login');
-    Route::post('/register', [ClienteAuthController::class, 'register'])->name('register');
+    // Registro público desabilitado: clientes são criados exclusivamente pelo admin.
+    // Route::post('/register', [ClienteAuthController::class, 'register'])->name('register');
 });
 
 // Rotas protegidas do cliente

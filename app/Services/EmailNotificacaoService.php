@@ -90,6 +90,16 @@ class EmailNotificacaoService
     }
 
     /**
+     * Envia as credenciais de acesso ao titular de uma conta de cliente.
+     * Usada pelo admin ao criar ou provisionar acesso de um cliente.
+     * Reutiliza o mesmo template de NovoSubUsuarioMail por ter a mesma estrutura.
+     */
+    public function credenciaisCliente(User $user, string $senhaTemporaria): void
+    {
+        $this->enviarParaUsuario($user->email, new NovoSubUsuarioMail($user, $senhaTemporaria));
+    }
+
+    /**
      * Notifica todos os admins quando um novo cliente é cadastrado.
      */
     public function novoClienteAdmins(Cliente $cliente): void

@@ -4,8 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cliente;
+use App\Models\User;
+use App\Services\EmailNotificacaoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class ClienteController extends Controller
@@ -68,26 +73,74 @@ class ClienteController extends Controller
     {
         try {
             $validated = $request->validate([
-                'nome' => 'required|string|max:255',
-                'email' => 'required|email|unique:clientes,email',
-                'telefone' => 'nullable|string|max:20',
-                'endereco' => 'nullable|string|max:255',
-                'cidade' => 'nullable|string|max:100',
-                'estado' => 'nullable|string|size:2',
-                'cep' => 'nullable|string|max:9',
-                'cnpj' => 'nullable|string|max:18|unique:clientes,cnpj',
-                'cpf' => 'nullable|string|max:14|unique:clientes,cpf',
-                'inscricao_estadual' => 'nullable|string|max:50',
+                'nome'                => 'required|string|max:255',
+                'email'               => 'required|email|unique:clientes,email|unique:users,email',
+                'password'            => 'nullable|string|min:8',
+                'gerar_senha'         => 'nullable|boolean',
+                'telefone'            => 'nullable|string|max:20',
+                'endereco'            => 'nullable|string|max:255',
+                'cidade'              => 'nullable|string|max:100',
+                'estado'              => 'nullable|string|size:2',
+                'cep'                 => 'nullable|string|max:9',
+                'cnpj'                => 'nullable|string|max:18|unique:clientes,cnpj',
+                'cpf'                 => 'nullable|string|max:14|unique:clientes,cpf',
+                'inscricao_estadual'  => 'nullable|string|max:50',
                 'inscricao_municipal' => 'nullable|string|max:50',
-                'status' => 'nullable|in:ativo,inativo,cancelado',
+                'status'              => 'nullable|in:ativo,inativo,cancelado',
             ]);
 
-            $cliente = Cliente::create($validated);
+            // Determina a senha: informada, gerada ou nenhuma
+            $senhaPlana = null;
+            if (!empty($validated['password'])) {
+                $senhaPlana = $validated['password'];
+            } elseif (!empty($validated['gerar_senha'])) {
+                $senhaPlana = Str::password(12);
+            }
+
+            $cliente = DB::transaction(function () use ($validated, $senhaPlana) {
+                $user = null;
+
+                if ($senhaPlana !== null) {
+                    // Cria o User de acesso vinculado ao e-mail principal do cliente
+                    $user = User::create([
+                        'name'     => $validated['nome'],
+                        'email'    => $validated['email'],
+                        'password' => Hash::make($senhaPlana),
+                        'role'     => 'cliente',
+                        'status'   => 'ativo',
+                    ]);
+                }
+
+                $clienteData = collect($validated)
+                    ->except(['password', 'gerar_senha'])
+                    ->toArray();
+
+                if ($user) {
+                    $clienteData['user_id'] = $user->id;
+                }
+
+                return Cliente::create($clienteData);
+            });
 
             $this->logClientAction('INFO', 'CREATE', [
-                'nome' => $cliente->nome,
-                'email' => $cliente->email
+                'nome'          => $cliente->nome,
+                'email'         => $cliente->email,
+                'acesso_criado' => $cliente->user_id !== null,
             ], 'Cliente criado com sucesso');
+
+            // Envia e-mail de boas-vindas com credenciais se houver senha
+            if ($senhaPlana !== null && $cliente->user_id) {
+                try {
+                    (new EmailNotificacaoService())->credenciaisCliente(
+                        $cliente->user,
+                        $senhaPlana
+                    );
+                } catch (\Exception $emailEx) {
+                    $this->logClientAction('WARNING', 'CREATE_EMAIL', [
+                        'cliente_id' => $cliente->id,
+                    ], 'Falha ao enviar e-mail de credenciais: ' . $emailEx->getMessage());
+                }
+            }
 
             \App\Models\Notificacao::notificarAdmins(
                 'Novo Cliente',
@@ -98,8 +151,9 @@ class ClienteController extends Controller
             );
 
             return response()->json([
-                'message' => 'Cliente criado com sucesso',
-                'data' => $cliente->load(['dominios', 'assinaturas.plano']),
+                'message'       => 'Cliente criado com sucesso',
+                'acesso_criado' => $cliente->user_id !== null,
+                'data'          => $cliente->load(['dominios', 'assinaturas.plano']),
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->logClientAction('ERROR', 'CREATE', [
@@ -112,7 +166,89 @@ class ClienteController extends Controller
             ], 'Erro ao criar cliente: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Erro ao criar cliente',
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Provisiona acesso (User) para um cliente já cadastrado sem credencial de login.
+     * Útil para clientes criados antes desta correção ou sem senha definida.
+     */
+    public function provisionarAcesso(Request $request, Cliente $cliente): JsonResponse
+    {
+        try {
+            if ($cliente->user_id && $cliente->user) {
+                return response()->json([
+                    'message' => 'Este cliente já possui acesso ao sistema.',
+                ], 422);
+            }
+
+            $validated = $request->validate([
+                'password'    => 'nullable|string|min:8',
+                'gerar_senha' => 'nullable|boolean',
+            ]);
+
+            $senhaPlana = null;
+            if (!empty($validated['password'])) {
+                $senhaPlana = $validated['password'];
+            } elseif (!empty($validated['gerar_senha'])) {
+                $senhaPlana = Str::password(12);
+            }
+
+            if ($senhaPlana === null) {
+                return response()->json([
+                    'message' => 'Informe uma senha ou solicite geração automática (gerar_senha: true).',
+                ], 422);
+            }
+
+            // Verifica se já existe um User com o mesmo e-mail (possível conta órfã)
+            $userExistente = User::where('email', $cliente->email)->first();
+            if ($userExistente) {
+                return response()->json([
+                    'message' => 'Já existe um usuário cadastrado com o e-mail deste cliente. Vincule manualmente se necessário.',
+                    'user_id' => $userExistente->id,
+                ], 422);
+            }
+
+            $user = DB::transaction(function () use ($cliente, $senhaPlana) {
+                $user = User::create([
+                    'name'     => $cliente->nome,
+                    'email'    => $cliente->email,
+                    'password' => Hash::make($senhaPlana),
+                    'role'     => 'cliente',
+                    'status'   => 'ativo',
+                ]);
+                $cliente->update(['user_id' => $user->id]);
+                return $user;
+            });
+
+            $this->logClientAction('INFO', 'PROVISIONAR_ACESSO', [
+                'cliente_id' => $cliente->id,
+                'user_id'    => $user->id,
+            ], 'Acesso provisionado com sucesso');
+
+            try {
+                (new EmailNotificacaoService())->credenciaisCliente($user, $senhaPlana);
+            } catch (\Exception $emailEx) {
+                $this->logClientAction('WARNING', 'PROVISIONAR_ACESSO_EMAIL', [
+                    'cliente_id' => $cliente->id,
+                ], 'Falha ao enviar e-mail: ' . $emailEx->getMessage());
+            }
+
+            return response()->json([
+                'message' => 'Acesso provisionado com sucesso. As credenciais foram enviadas por e-mail.',
+                'data'    => $cliente->fresh()->load(['user', 'dominios', 'assinaturas.plano']),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            $this->logClientAction('ERROR', 'PROVISIONAR_ACESSO', [
+                'cliente_id' => $cliente->id,
+            ], 'Erro ao provisionar acesso: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Erro ao provisionar acesso',
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
