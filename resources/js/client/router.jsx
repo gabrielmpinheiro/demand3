@@ -13,6 +13,7 @@ import Profile from "./views/Profile";
 import SubUsers from "./views/SubUsers";
 import Vault from "./views/Vault";
 import Partnership from "./views/Partnership";
+import HoursReport from "./views/HoursReport";
 import { isFeatureEnabled } from "./config/features";
 
 const router = createBrowserRouter([
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
             {
                 path: '/tickets',
                 element: <Tickets />
+            },
+            {
+                path: '/relatorio',
+                element: <HoursReport />
             },
             {
                 path: '/notifications',

@@ -99,6 +99,7 @@ export default function DefaultLayout() {
                     <Link to="/admpanel/subscriptions" className="block py-2.5 px-4 hover:bg-green-800 transition duration-200">Assinaturas</Link>
                     <Link to="/admpanel/payments" className="block py-2.5 px-4 hover:bg-green-800 transition duration-200">Pagamentos</Link>
                     <Link to="/admpanel/support" className="block py-2.5 px-4 hover:bg-green-800 transition duration-200">Suporte</Link>
+                    <Link to="/admpanel/reports" className="block py-2.5 px-4 hover:bg-green-800 transition duration-200">Relatórios</Link>
                     <Link to="/admpanel/notifications" className="block py-2.5 px-4 hover:bg-green-800 transition duration-200">Notificações</Link>
                     <Link to="/admpanel/vault" className="block py-2.5 px-4 hover:bg-green-800 transition duration-200">Vault</Link>
                 </nav>

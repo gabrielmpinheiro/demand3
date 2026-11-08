@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Mail\Admins\NovaAssinaturaMail;
+use App\Mail\Clientes\RelatorioHorasMail;
 use App\Mail\Admins\NovoClienteMail;
 use App\Mail\Admins\NovoChamadoAdminMail;
 use App\Mail\Admins\NovoPagamentoMail;
@@ -14,6 +15,7 @@ use App\Mail\Clientes\NovaDemandaMail;
 use App\Mail\Clientes\NovoSubUsuarioMail;
 use App\Mail\Clientes\StatusDemandaMail;
 use App\Models\Assinatura;
+use Carbon\Carbon;
 use App\Models\Cliente;
 use App\Models\Demanda;
 use App\Models\Pagamento;
@@ -137,6 +139,33 @@ class EmailNotificacaoService
     public function novoChamadoAdmins(Suporte $suporte): void
     {
         $this->enviarParaAdmins(new NovoChamadoAdminMail($suporte));
+    }
+
+    /**
+     * Envia o relatório de horas ao e-mail cadastrado do cliente.
+     * Disparado exclusivamente pelo admin.
+     *
+     * @param  Cliente      $cliente
+     * @param  array        $relatorio   Estrutura gerada pelo RelatorioService
+     * @param  Carbon       $dataInicio
+     * @param  Carbon       $dataFim
+     */
+    public function relatorioHorasCliente(
+        Cliente $cliente,
+        array   $relatorio,
+        Carbon  $dataInicio,
+        Carbon  $dataFim,
+    ): void {
+        $email = $cliente->email ?? $cliente->user?->email;
+
+        if ($email) {
+            $this->enviarParaUsuario($email, new RelatorioHorasMail(
+                cliente:       $cliente,
+                relatorio:     $relatorio,
+                periodoInicio: $dataInicio->toDateString(),
+                periodoFim:    $dataFim->toDateString(),
+            ));
+        }
     }
 
     // -------------------------------------------------------------------------

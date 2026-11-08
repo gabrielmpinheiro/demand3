@@ -12,6 +12,7 @@ import Payments from "./views/Payments";
 import Support from "./views/Support";
 import Notifications from "./views/Notifications";
 import Vault from "./views/Vault";
+import Reports from "./views/Reports";
 
 const router = createBrowserRouter([
     {
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
             {
                 path: '/admpanel/support',
                 element: <Support />
+            },
+            {
+                path: '/admpanel/reports',
+                element: <Reports />
             },
             {
                 path: '/admpanel/notifications',

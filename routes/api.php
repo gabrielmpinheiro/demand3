@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\NotificacaoController;
 use App\Http\Controllers\Api\VaultController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RelatorioController;
 use App\Http\Controllers\Api\Cliente\ClienteVaultController;
 use Illuminate\Support\Facades\Route;
 
@@ -95,6 +96,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Vault (Cofre de senhas)
     Route::apiResource('vault', VaultController::class);
     Route::get('vault/{vault}/revelar-senha', [VaultController::class, 'revelarSenha']);
+
+    // Relatórios de Horas (Admin)
+    Route::get('relatorios', [RelatorioController::class, 'index']);
+    Route::post('relatorios/enviar-email', [RelatorioController::class, 'enviarEmail']);
 });
 
 /*
@@ -112,6 +117,7 @@ use App\Http\Controllers\Api\Cliente\ClienteSuporteController;
 use App\Http\Controllers\Api\Cliente\ClienteNotificacaoController;
 use App\Http\Controllers\Api\Cliente\ClienteUserController;
 use App\Http\Controllers\Api\Cliente\ClientePlanoController;
+use App\Http\Controllers\Api\Cliente\ClienteRelatorioController;
 
 // Rotas públicas do cliente
 Route::group(['prefix' => 'client/auth', 'as' => 'client.auth.'], function () {
@@ -158,5 +164,8 @@ Route::group(['prefix' => 'client', 'as' => 'client.', 'middleware' => ['auth:sa
     // Vault (Cofre de senhas)
     Route::apiResource('vault', ClienteVaultController::class);
     Route::get('vault/{vault}/revelar-senha', [ClienteVaultController::class, 'revelarSenha']);
+
+    // Relatório de Horas (Cliente)
+    Route::get('relatorio', [ClienteRelatorioController::class, 'index']);
 });
 

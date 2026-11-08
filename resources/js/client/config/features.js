@@ -14,6 +14,7 @@ export const defaultFeatures = {
     vault: true,
     users: true,
     notifications: true,
+    relatorio: true,
 };
 
 export const getFeatures = () => {
