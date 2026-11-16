@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axiosClient from "../axios-client";
 import { toast } from "react-toastify";
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers de tela ───────────────────────────────────────────────────────────
 function formatHoras(h) {
     if (h === null || h === undefined) return "0,00h";
     return h.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "h";
@@ -19,6 +19,28 @@ function getMonthRange() {
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const fmt = (d) => d.toISOString().split("T")[0];
     return { inicio: fmt(firstDay), fim: fmt(lastDay) };
+}
+
+// ── Helpers de impressão ──────────────────────────────────────────────────────
+function formatDataBR(dateStr) {
+    if (!dateStr) return "—";
+    if (/^\d{2}\/\d{2}\/\d{4}/.test(dateStr)) return dateStr;
+    const [date, time] = dateStr.split("T");
+    if (!date) return dateStr;
+    const [y, m, d] = date.split("-");
+    return time ? `${d}/${m}/${y} ${time.substring(0, 5)}` : `${d}/${m}/${y}`;
+}
+
+function calcPct(demandas) {
+    if (!demandas || demandas.length === 0) return 0;
+    return Math.round(demandas.filter((d) => d.status === "concluido").length / demandas.length * 100);
+}
+
+function agora() {
+    return new Date().toLocaleString("pt-BR", {
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit",
+    });
 }
 
 // ── Badge de classificação ───────────────────────────────────────────────────
@@ -440,6 +462,342 @@ function GeralReport({ data, meta }) {
     );
 }
 
+// ── Componente de impressão profissional (ABNT) ──────────────────────────────
+function PrintableReport({ data, filtros }) {
+    const { cliente, resumo, pendencias, chamados, periodo, tipo } = data;
+
+    const geradoEm = agora();
+    const periodoInicio = formatDataBR(periodo?.inicio || filtros?.data_inicio);
+    const periodoFim = formatDataBR(periodo?.fim || filtros?.data_fim);
+
+    const docStyle = {
+        fontFamily: "Arial, sans-serif",
+        fontSize: "11pt",
+        color: "#000",
+        margin: "0",
+        padding: "20px",
+    };
+
+    const tableStyle = {
+        width: "100%",
+        borderCollapse: "collapse",
+        marginBottom: "16px",
+        fontSize: "10pt",
+    };
+
+    const thStyle = {
+        border: "1px solid #333",
+        padding: "6px 8px",
+        backgroundColor: "#1a2b4a",
+        color: "#fff",
+        textAlign: "left",
+    };
+
+    const tdStyle = {
+        border: "1px solid #ccc",
+        padding: "5px 8px",
+    };
+
+    const tdRightStyle = {
+        border: "1px solid #ccc",
+        padding: "5px 8px",
+        textAlign: "right",
+    };
+
+    const sectionTitleStyle = {
+        marginTop: "20px",
+        marginBottom: "8px",
+        fontSize: "12pt",
+        fontWeight: "bold",
+        color: "#1a2b4a",
+        borderBottom: "1px solid #ccc",
+        paddingBottom: "4px",
+    };
+
+    const headerStyle = {
+        borderBottom: "2px solid #1a2b4a",
+        paddingBottom: "12px",
+        marginBottom: "16px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+    };
+
+    const subTableStyle = {
+        borderCollapse: "collapse",
+        fontSize: "9pt",
+        marginLeft: "20px",
+        width: "calc(100% - 20px)",
+        backgroundColor: "#f9f9f9",
+    };
+
+    const subThStyle = {
+        border: "1px solid #bbb",
+        padding: "4px 6px",
+        backgroundColor: "#e8edf5",
+        color: "#1a2b4a",
+        textAlign: "left",
+        fontSize: "8.5pt",
+    };
+
+    const subTdStyle = {
+        border: "1px solid #ddd",
+        padding: "3px 6px",
+        backgroundColor: "#f9f9f9",
+    };
+
+    const classificacaoLabel = (cls) => {
+        const map = {
+            coberta_pelo_plano: "Coberta pelo Plano",
+            hora_tecnica_excedente: "Excedente",
+            hora_avulsa: "Avulsa",
+            sem_cobranca: "Sem Cobranca",
+        };
+        return map[cls] || cls || "—";
+    };
+
+    const statusLabel = (s) => {
+        const map = {
+            concluido: "Concluido",
+            em_andamento: "Em Andamento",
+            pendente: "Pendente",
+            cancelado: "Cancelado",
+        };
+        return map[s] || s || "—";
+    };
+
+    const fmtH = (h) => (h || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "h";
+    const fmtM = (v) => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+    return (
+        <div id="print-report-admin" style={docStyle}>
+
+            {/* ── Cabeçalho ─────────────────────────────────────────────── */}
+            <div style={headerStyle}>
+                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                    <img src="/logo.png" alt="Demand3" height="40" style={{ height: "40px" }} />
+                    <div>
+                        <div style={{ fontWeight: "bold", fontSize: "14pt", color: "#1a2b4a" }}>Demand3 / SiteCare</div>
+                        <div style={{ fontSize: "11pt", fontWeight: "bold", color: "#333" }}>Relatório de Horas</div>
+                    </div>
+                </div>
+                <div style={{ textAlign: "right", fontSize: "9pt", color: "#555" }}>
+                    <div>Gerado em: <strong>{geradoEm}</strong></div>
+                    <div>Período: <strong>{periodoInicio}</strong> a <strong>{periodoFim}</strong></div>
+                    <div style={{ marginTop: "4px", color: "#999" }}>v1.0</div>
+                </div>
+            </div>
+
+            {/* ── Dados do Cliente ──────────────────────────────────────── */}
+            <div style={sectionTitleStyle}>DADOS DO CLIENTE</div>
+            <table style={tableStyle}>
+                <tbody>
+                    <tr>
+                        <td style={{ ...tdStyle, fontWeight: "bold", width: "120px" }}>Nome</td>
+                        <td style={tdStyle}>{cliente.nome || "—"}</td>
+                        <td style={{ ...tdStyle, fontWeight: "bold", width: "120px" }}>
+                            {cliente.cnpj ? "CNPJ" : "CPF"}
+                        </td>
+                        <td style={tdStyle}>{cliente.cnpj || cliente.cpf || "—"}</td>
+                    </tr>
+                    <tr>
+                        <td style={{ ...tdStyle, fontWeight: "bold" }}>Cidade/Estado</td>
+                        <td style={tdStyle}>{[cliente.cidade, cliente.estado].filter(Boolean).join(" / ") || "—"}</td>
+                        <td style={{ ...tdStyle, fontWeight: "bold" }}>Plano</td>
+                        <td style={tdStyle}>{cliente.plano_atual?.nome || "—"}</td>
+                    </tr>
+                    <tr>
+                        <td style={{ ...tdStyle, fontWeight: "bold" }}>E-mail</td>
+                        <td style={tdStyle}>{cliente.email || "—"}</td>
+                        <td style={{ ...tdStyle, fontWeight: "bold" }}>Limite Horas Tecnicas</td>
+                        <td style={tdStyle}>{fmtH(cliente.plano_atual?.limite_horas_tecnicas)}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            {/* ── Resumo de Horas ───────────────────────────────────────── */}
+            <div style={sectionTitleStyle}>RESUMO DE HORAS</div>
+            <table style={tableStyle}>
+                <thead>
+                    <tr>
+                        <th style={thStyle}>Categoria</th>
+                        <th style={{ ...thStyle, textAlign: "right" }}>Horas</th>
+                        <th style={{ ...thStyle, textAlign: "right" }}>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style={tdStyle}>Horas do Plano</td>
+                        <td style={tdRightStyle}>{fmtH(resumo.horas_plano)}</td>
+                        <td style={tdRightStyle}>—</td>
+                    </tr>
+                    <tr>
+                        <td style={tdStyle}>Cobertas pelo Plano</td>
+                        <td style={tdRightStyle}>{fmtH(resumo.horas_tecnicas_cobertas)}</td>
+                        <td style={tdRightStyle}>—</td>
+                    </tr>
+                    <tr>
+                        <td style={tdStyle}>Excedentes</td>
+                        <td style={tdRightStyle}>{fmtH(resumo.horas_tecnicas_excedentes)}</td>
+                        <td style={tdRightStyle}>{fmtM(resumo.valor_horas_excedentes)}</td>
+                    </tr>
+                    <tr>
+                        <td style={tdStyle}>Avulsas</td>
+                        <td style={tdRightStyle}>{fmtH(resumo.horas_tecnicas_avulsas)}</td>
+                        <td style={tdRightStyle}>{fmtM(resumo.valor_horas_avulsas)}</td>
+                    </tr>
+                    <tr style={{ fontWeight: "bold", backgroundColor: "#f0f4fa" }}>
+                        <td style={{ ...tdStyle, fontWeight: "bold" }}>TOTAL</td>
+                        <td style={{ ...tdRightStyle, fontWeight: "bold" }}>{fmtH(resumo.total_horas)}</td>
+                        <td style={{ ...tdRightStyle, fontWeight: "bold" }}>{fmtM(resumo.valor_total_a_pagar)}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            {/* ── Legenda ───────────────────────────────────────────────── */}
+            <div style={{ fontSize: "8.5pt", color: "#555", border: "1px solid #ddd", padding: "8px 12px", marginBottom: "16px", backgroundColor: "#fafafa" }}>
+                <strong>Legenda:</strong>{" "}
+                <strong>Horas do Plano</strong>: total de horas trabalhadas cobertas pelo contrato mensal.{" "}
+                <strong>Cobertas pelo Plano</strong>: horas tecnicas consumidas dentro do limite do plano.{" "}
+                <strong>Excedentes</strong>: horas que ultrapassaram o limite do plano, cobradas separadamente.{" "}
+                <strong>Avulsas</strong>: horas de servicos pontuais fora do plano, com valor proprio.{" "}
+                <strong>Total a Pagar</strong>: soma de excedentes e avulsas.
+                {resumo.valor_hora_referencia > 0 && (
+                    <span> Valor de referencia por hora: <strong>{fmtM(resumo.valor_hora_referencia)}</strong>.</span>
+                )}
+            </div>
+
+            {/* ── Pendências ────────────────────────────────────────────── */}
+            {pendencias && pendencias.length > 0 && (
+                <>
+                    <div style={sectionTitleStyle}>PENDENCIAS ({pendencias.length})</div>
+                    <table style={tableStyle}>
+                        <thead>
+                            <tr>
+                                <th style={thStyle}>Titulo</th>
+                                <th style={thStyle}>Tipo</th>
+                                <th style={thStyle}>Status</th>
+                                <th style={{ ...thStyle, textAlign: "right" }}>Horas</th>
+                                <th style={thStyle}>Dominio</th>
+                                <th style={thStyle}>Criada em</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {pendencias.map((p) => (
+                                <tr key={p.id}>
+                                    <td style={tdStyle}>{p.titulo || "—"}</td>
+                                    <td style={tdStyle}>{(p.tipo || "—").replace(/_/g, " ")}</td>
+                                    <td style={tdStyle}>{statusLabel(p.status)}</td>
+                                    <td style={tdRightStyle}>{fmtH(p.horas)}</td>
+                                    <td style={tdStyle}>{p.dominio || "—"}</td>
+                                    <td style={tdStyle}>{formatDataBR(p.criada_em)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </>
+            )}
+
+            {/* ── Histórico de Chamados (tipo completo) ─────────────────── */}
+            {tipo === "completo" && chamados && chamados.length > 0 && (
+                <>
+                    <div style={sectionTitleStyle}>HISTORICO DE CHAMADOS ({chamados.length})</div>
+                    <table style={tableStyle}>
+                        <thead>
+                            <tr>
+                                <th style={{ ...thStyle, width: "50px" }}>#ID</th>
+                                <th style={thStyle}>Dominio</th>
+                                <th style={thStyle}>Status</th>
+                                <th style={{ ...thStyle, textAlign: "right", width: "80px" }}>% Concluido</th>
+                                <th style={{ ...thStyle, textAlign: "right", width: "80px" }}>Demandas</th>
+                                <th style={thStyle}>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {chamados.map((c) => (
+                                <>
+                                    <tr key={c.id} style={{ backgroundColor: "#f0f4fa" }}>
+                                        <td style={{ ...tdStyle, fontWeight: "bold" }}>#{c.id}</td>
+                                        <td style={tdStyle}>{c.dominio || "—"}</td>
+                                        <td style={tdStyle}>{statusLabel(c.status)}</td>
+                                        <td style={tdRightStyle}>{calcPct(c.demandas)}%</td>
+                                        <td style={tdRightStyle}>{c.demandas?.length ?? 0}</td>
+                                        <td style={tdStyle}>{formatDataBR(c.criado_em)}</td>
+                                    </tr>
+                                    {c.demandas && c.demandas.length > 0 && (
+                                        <tr key={`dem-${c.id}`}>
+                                            <td colSpan={6} style={{ padding: "0 0 8px 20px", border: "none" }}>
+                                                <table style={subTableStyle}>
+                                                    <thead>
+                                                        <tr>
+                                                            <th style={subThStyle}>Titulo</th>
+                                                            <th style={subThStyle}>Classificacao</th>
+                                                            <th style={{ ...subThStyle, textAlign: "right" }}>Horas</th>
+                                                            <th style={{ ...subThStyle, textAlign: "right" }}>Valor</th>
+                                                            <th style={subThStyle}>Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {c.demandas.map((d) => (
+                                                            <tr key={d.id}>
+                                                                <td style={subTdStyle}>{d.titulo || "—"}</td>
+                                                                <td style={subTdStyle}>{classificacaoLabel(d.classificacao)}</td>
+                                                                <td style={{ ...subTdStyle, textAlign: "right" }}>{fmtH(d.horas)}</td>
+                                                                <td style={{ ...subTdStyle, textAlign: "right" }}>
+                                                                    {d.valor_excedente > 0 ? fmtM(d.valor_excedente) : "—"}
+                                                                </td>
+                                                                <td style={subTdStyle}>{statusLabel(d.status)}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </>
+                            ))}
+                        </tbody>
+                    </table>
+                </>
+            )}
+
+            {/* Tipo simples: apenas tabela resumida de chamados */}
+            {tipo !== "completo" && chamados && chamados.length > 0 && (
+                <>
+                    <div style={sectionTitleStyle}>CHAMADOS DO PERIODO ({chamados.length})</div>
+                    <table style={tableStyle}>
+                        <thead>
+                            <tr>
+                                <th style={{ ...thStyle, width: "50px" }}>#ID</th>
+                                <th style={thStyle}>Dominio</th>
+                                <th style={thStyle}>Status</th>
+                                <th style={{ ...thStyle, textAlign: "right" }}>Demandas</th>
+                                <th style={thStyle}>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {chamados.map((c) => (
+                                <tr key={c.id}>
+                                    <td style={{ ...tdStyle, fontWeight: "bold" }}>#{c.id}</td>
+                                    <td style={tdStyle}>{c.dominio || "—"}</td>
+                                    <td style={tdStyle}>{statusLabel(c.status)}</td>
+                                    <td style={tdRightStyle}>{c.demandas?.length ?? 0}</td>
+                                    <td style={tdStyle}>{formatDataBR(c.criado_em)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </>
+            )}
+
+            {/* ── Rodapé ────────────────────────────────────────────────── */}
+            <div style={{ marginTop: "32px", borderTop: "1px solid #ccc", paddingTop: "8px", fontSize: "8pt", color: "#888", textAlign: "center" }}>
+                Documento gerado em {geradoEm} — Demand3 / SiteCare
+            </div>
+        </div>
+    );
+}
+
 // ── Componente principal ─────────────────────────────────────────────────────
 export default function Reports() {
     const { inicio, fim } = getMonthRange();
@@ -531,181 +889,228 @@ export default function Reports() {
     const clienteSelecionado = clientes.find((c) => String(c.id) === String(filtros.cliente_id));
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
-            <h1 className="text-2xl font-bold text-gray-800">Relatório de Horas</h1>
+        <>
+            {/* CSS de impressão — oculta tudo exceto o PrintableReport */}
+            <style>{`
+                #print-report-admin {
+                    display: none;
+                }
+                @media print {
+                    aside,
+                    header,
+                    nav,
+                    .fixed,
+                    .print\\:hidden,
+                    #admin-screen-view {
+                        display: none !important;
+                    }
 
-            {/* ── Painel de filtros ──────────────────────────────────── */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 print:hidden">
-                <h2 className="text-base font-semibold text-gray-700 mb-4">Filtros</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Select de cliente */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Cliente</label>
-                        <select
-                            name="cliente_id"
-                            value={filtros.cliente_id}
-                            onChange={handleFiltroChange}
-                            disabled={loadingClientes}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100"
-                        >
-                            <option value="">
-                                {loadingClientes ? "Carregando clientes..." : "Todos os clientes"}
-                            </option>
-                            {clientes.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.nome}
+                    html, body, #admin-root, #defaultLayout, main {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: #fff !important;
+                        color: #000 !important;
+                        min-height: auto !important;
+                        height: auto !important;
+                        overflow: visible !important;
+                    }
+
+                    #print-report-admin {
+                        display: block !important;
+                        visibility: visible !important;
+                        width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+
+                    @page {
+                        size: A4 portrait;
+                        margin: 1.5cm;
+                    }
+                }
+            `}</style>
+
+            {/* Versão de impressão — só aparece no print */}
+            {relatorio && relatorio.data && !Array.isArray(relatorio.data) && (
+                <PrintableReport data={relatorio.data} filtros={filtros} />
+            )}
+
+            <div id="admin-screen-view" className="max-w-7xl mx-auto space-y-6 print:hidden">
+                <h1 className="text-2xl font-bold text-gray-800">Relatório de Horas</h1>
+
+                {/* ── Painel de filtros ──────────────────────────────────── */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 print:hidden">
+                    <h2 className="text-base font-semibold text-gray-700 mb-4">Filtros</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Select de cliente */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Cliente</label>
+                            <select
+                                name="cliente_id"
+                                value={filtros.cliente_id}
+                                onChange={handleFiltroChange}
+                                disabled={loadingClientes}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100"
+                            >
+                                <option value="">
+                                    {loadingClientes ? "Carregando clientes..." : "Todos os clientes"}
                                 </option>
-                            ))}
-                        </select>
+                                {clientes.map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.nome}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Data início */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Data Início</label>
+                            <input
+                                type="date"
+                                name="data_inicio"
+                                value={filtros.data_inicio}
+                                onChange={handleFiltroChange}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                        </div>
+
+                        {/* Data fim */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Data Fim</label>
+                            <input
+                                type="date"
+                                name="data_fim"
+                                value={filtros.data_fim}
+                                onChange={handleFiltroChange}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            />
+                        </div>
+
+                        {/* Tipo */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Tipo</label>
+                            <select
+                                name="tipo"
+                                value={filtros.tipo}
+                                onChange={handleFiltroChange}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            >
+                                <option value="completo">Completo</option>
+                                <option value="simples">Simples</option>
+                            </select>
+                        </div>
                     </div>
 
-                    {/* Data início */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Data Início</label>
-                        <input
-                            type="date"
-                            name="data_inicio"
-                            value={filtros.data_inicio}
-                            onChange={handleFiltroChange}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                    </div>
-
-                    {/* Data fim */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Data Fim</label>
-                        <input
-                            type="date"
-                            name="data_fim"
-                            value={filtros.data_fim}
-                            onChange={handleFiltroChange}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                    </div>
-
-                    {/* Tipo */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Tipo</label>
-                        <select
-                            name="tipo"
-                            value={filtros.tipo}
-                            onChange={handleFiltroChange}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                        >
-                            <option value="completo">Completo</option>
-                            <option value="simples">Simples</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* Botões de ação */}
-                <div className="flex flex-wrap gap-3 mt-5">
-                    <button
-                        onClick={gerarRelatorio}
-                        disabled={loading}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition disabled:opacity-60"
-                    >
-                        {loading ? (
-                            <>
-                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                </svg>
-                                Gerando...
-                            </>
-                        ) : (
-                            <>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                Gerar Relatório
-                            </>
-                        )}
-                    </button>
-
-                    {relatorio && (
+                    {/* Botões de ação */}
+                    <div className="flex flex-wrap gap-3 mt-5">
                         <button
-                            onClick={() => window.print()}
-                            className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition print:hidden"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                            Imprimir / Salvar PDF
-                        </button>
-                    )}
-
-                    {filtros.cliente_id && (
-                        <button
-                            onClick={() => setShowEmailModal(true)}
+                            onClick={gerarRelatorio}
                             disabled={loading}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition disabled:opacity-60 print:hidden"
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition disabled:opacity-60"
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                            Enviar por E-mail
+                            {loading ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                    Gerando...
+                                </>
+                            ) : (
+                                <>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Gerar Relatório
+                                </>
+                            )}
                         </button>
-                    )}
+
+                        {relatorio && (
+                            <button
+                                onClick={() => window.print()}
+                                className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition print:hidden"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                                Imprimir / Salvar PDF
+                            </button>
+                        )}
+
+                        {filtros.cliente_id && (
+                            <button
+                                onClick={() => setShowEmailModal(true)}
+                                disabled={loading}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-semibold transition disabled:opacity-60 print:hidden"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                Enviar por E-mail
+                            </button>
+                        )}
+                    </div>
                 </div>
+
+                {/* ── Estado de loading ───────────────────────────────────── */}
+                {loading && <LoadingSkeleton />}
+
+                {/* ── Estado de erro ──────────────────────────────────────── */}
+                {error && !loading && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+                        <svg className="w-10 h-10 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-red-700 font-semibold">{error}</p>
+                        <button
+                            onClick={gerarRelatorio}
+                            className="mt-3 text-sm text-red-600 underline hover:text-red-800"
+                        >
+                            Tentar novamente
+                        </button>
+                    </div>
+                )}
+
+                {/* ── Estado inicial (sem relatório) ──────────────────────── */}
+                {!loading && !error && !relatorio && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+                        <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p className="text-gray-500 text-lg font-medium">Configure os filtros e clique em <span className="text-green-600 font-semibold">Gerar Relatório</span></p>
+                        <p className="text-gray-400 text-sm mt-1">O período padrão é o mês corrente.</p>
+                    </div>
+                )}
+
+                {/* ── Resultado ───────────────────────────────────────────── */}
+                {!loading && !error && relatorio && (
+                    <>
+                        {/* Relatório de cliente específico */}
+                        {relatorio.data && !Array.isArray(relatorio.data) && (
+                            <ClienteReport data={relatorio.data} />
+                        )}
+
+                        {/* Relatório geral */}
+                        {relatorio.data && Array.isArray(relatorio.data) && (
+                            <GeralReport data={relatorio.data} meta={relatorio.meta} />
+                        )}
+                    </>
+                )}
+
+                {/* ── Modal de e-mail ──────────────────────────────────────── */}
+                {showEmailModal && (
+                    <EmailModal
+                        cliente={clienteSelecionado}
+                        periodo={{ inicio: filtros.data_inicio, fim: filtros.data_fim }}
+                        tipo={filtros.tipo}
+                        onConfirm={enviarEmail}
+                        onCancel={() => setShowEmailModal(false)}
+                        sending={sending}
+                    />
+                )}
             </div>
-
-            {/* ── Estado de loading ───────────────────────────────────── */}
-            {loading && <LoadingSkeleton />}
-
-            {/* ── Estado de erro ──────────────────────────────────────── */}
-            {error && !loading && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-                    <svg className="w-10 h-10 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-red-700 font-semibold">{error}</p>
-                    <button
-                        onClick={gerarRelatorio}
-                        className="mt-3 text-sm text-red-600 underline hover:text-red-800"
-                    >
-                        Tentar novamente
-                    </button>
-                </div>
-            )}
-
-            {/* ── Estado inicial (sem relatório) ──────────────────────── */}
-            {!loading && !error && !relatorio && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-                    <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p className="text-gray-500 text-lg font-medium">Configure os filtros e clique em <span className="text-green-600 font-semibold">Gerar Relatório</span></p>
-                    <p className="text-gray-400 text-sm mt-1">O período padrão é o mês corrente.</p>
-                </div>
-            )}
-
-            {/* ── Resultado ───────────────────────────────────────────── */}
-            {!loading && !error && relatorio && (
-                <>
-                    {/* Relatório de cliente específico */}
-                    {relatorio.data && !Array.isArray(relatorio.data) && (
-                        <ClienteReport data={relatorio.data} />
-                    )}
-
-                    {/* Relatório geral */}
-                    {relatorio.data && Array.isArray(relatorio.data) && (
-                        <GeralReport data={relatorio.data} meta={relatorio.meta} />
-                    )}
-                </>
-            )}
-
-            {/* ── Modal de e-mail ──────────────────────────────────────── */}
-            {showEmailModal && (
-                <EmailModal
-                    cliente={clienteSelecionado}
-                    periodo={{ inicio: filtros.data_inicio, fim: filtros.data_fim }}
-                    tipo={filtros.tipo}
-                    onConfirm={enviarEmail}
-                    onCancel={() => setShowEmailModal(false)}
-                    sending={sending}
-                />
-            )}
-        </div>
+        </>
     );
 }
