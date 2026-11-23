@@ -24,6 +24,7 @@ class Demanda extends Model
         'valor',
         'valor_excedente',
         'cobrado',
+        'created_at',
     ];
 
     protected $casts = [

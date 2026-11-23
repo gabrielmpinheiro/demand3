@@ -71,10 +71,20 @@ class DemandaController extends Controller
             'tipo' => 'nullable|in:hora_tecnica,plano',
             'quantidade_horas_tecnicas' => 'required|numeric|min:0.5',
             'status' => 'nullable|in:pendente,em_andamento,em_aprovacao,concluido,cancelado',
+            'created_at' => 'nullable|date',
         ]);
 
         try {
+            if (!empty($validated['created_at'])) {
+                $validated['created_at'] = Carbon::parse($validated['created_at']);
+            } else {
+                unset($validated['created_at']);
+            }
+
             $demanda = new Demanda($validated);
+            if (isset($validated['created_at'])) {
+                $demanda->created_at = $validated['created_at'];
+            }
 
             // Calcula o valor da demanda baseado nas regras de negócio
             $demanda->calcularValor();
@@ -133,9 +143,18 @@ class DemandaController extends Controller
             'tipo' => 'sometimes|in:hora_tecnica,plano',
             'status' => 'nullable|in:pendente,em_andamento,em_aprovacao,concluido,cancelado',
             'quantidade_horas_tecnicas' => 'sometimes|required|numeric|min:0.5',
+            'created_at' => 'nullable|date',
         ]);
 
         try {
+            if (array_key_exists('created_at', $validated)) {
+                if (!empty($validated['created_at'])) {
+                    $validated['created_at'] = Carbon::parse($validated['created_at']);
+                } else {
+                    unset($validated['created_at']);
+                }
+            }
+
             $statusAnterior = $demanda->status;
 
             // Se alterou as horas ou o tipo, recalcula o valor

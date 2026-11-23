@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Suporte;
 use App\Services\EmailNotificacaoService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -46,7 +47,14 @@ class SuporteController extends Controller
                 'dominio_id' => 'nullable|exists:dominios,id',
                 'mensagem' => 'nullable|string',
                 'status' => 'nullable|in:aberto,em_andamento,concluido,cancelado',
+                'created_at' => 'nullable|date',
             ]);
+
+            if (!empty($validated['created_at'])) {
+                $validated['created_at'] = Carbon::parse($validated['created_at']);
+            } else {
+                unset($validated['created_at']);
+            }
 
             $suporte = Suporte::create($validated);
 
@@ -90,7 +98,16 @@ class SuporteController extends Controller
                 'dominio_id' => 'nullable|exists:dominios,id',
                 'mensagem' => 'nullable|string',
                 'status' => 'nullable|in:aberto,em_andamento,concluido,cancelado',
+                'created_at' => 'nullable|date',
             ]);
+
+            if (array_key_exists('created_at', $validated)) {
+                if (!empty($validated['created_at'])) {
+                    $validated['created_at'] = Carbon::parse($validated['created_at']);
+                } else {
+                    unset($validated['created_at']);
+                }
+            }
 
             $statusAnterior = $suporte->status;
             $suporte->update($validated);

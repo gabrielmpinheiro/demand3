@@ -18,6 +18,7 @@ class Suporte extends Model
         'mensagem',
         'status',
         'arquivos',
+        'created_at',
     ];
 
     protected $casts = [

@@ -1,13 +1,23 @@
 import { useEffect, useState } from "react";
 import axiosClient from "../axios-client";
 
+const toDatetimeLocal = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export default function SuporteModal({ isOpen, onClose, onSave, suporte }) {
     const [formData, setFormData] = useState({
         cliente_id: '',
         dominio_id: '',
         mensagem: '',
         status: 'aberto',
+        created_at: '',
     });
+    const [customDate, setCustomDate] = useState(false);
     const [clients, setClients] = useState([]);
     const [domains, setDomains] = useState([]);
     const [errors, setErrors] = useState({});
@@ -47,14 +57,18 @@ export default function SuporteModal({ isOpen, onClose, onSave, suporte }) {
                 dominio_id: suporte.dominio_id || '',
                 mensagem: suporte.mensagem || '',
                 status: suporte.status || 'aberto',
+                created_at: toDatetimeLocal(suporte.created_at) || '',
             });
+            setCustomDate(Boolean(suporte.created_at));
         } else {
             setFormData({
                 cliente_id: '',
                 dominio_id: '',
                 mensagem: '',
                 status: 'aberto',
+                created_at: '',
             });
+            setCustomDate(false);
         }
         setErrors({});
     }, [suporte, isOpen]);
@@ -98,7 +112,11 @@ export default function SuporteModal({ isOpen, onClose, onSave, suporte }) {
 
         setLoading(true);
         try {
-            await onSave(formData);
+            const payload = { ...formData };
+            if (!customDate || !payload.created_at) {
+                delete payload.created_at;
+            }
+            await onSave(payload);
             onClose();
         } catch (error) {
             console.error("Erro ao salvar suporte:", error);
@@ -210,6 +228,54 @@ export default function SuporteModal({ isOpen, onClose, onSave, suporte }) {
                             <option value="concluido">Concluído</option>
                             <option value="cancelado">Cancelado</option>
                         </select>
+                    </div>
+
+                    {/* Data de Criação (Poder Admin para retroativo) */}
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Data de Criação
+                            </label>
+                            <label className="flex items-center text-xs text-gray-600 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={customDate}
+                                    onChange={(e) => {
+                                        const checked = e.target.checked;
+                                        setCustomDate(checked);
+                                        if (!checked) {
+                                            setFormData(prev => ({ ...prev, created_at: '' }));
+                                        } else if (!formData.created_at) {
+                                            setFormData(prev => ({ ...prev, created_at: toDatetimeLocal(new Date()) }));
+                                        }
+                                    }}
+                                    className="mr-1.5 h-4 w-4 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                                />
+                                Definir data retroativa / específica
+                            </label>
+                        </div>
+
+                        {customDate ? (
+                            <div>
+                                <input
+                                    type="datetime-local"
+                                    name="created_at"
+                                    value={formData.created_at || ''}
+                                    onChange={handleChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm bg-white"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    O chamado será registrado no sistema com esta data e hora (útil para relatórios e prestação de contas retroativos).
+                                </p>
+                            </div>
+                        ) : (
+                            <p className="text-xs text-gray-500">
+                                Será registrada automaticamente com a <strong>data e hora atual</strong> do sistema.
+                            </p>
+                        )}
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4 border-t">

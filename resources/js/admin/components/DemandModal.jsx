@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import axiosClient from "../axios-client";
 
+const toDatetimeLocal = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId, clienteId, dominioId }) {
     const [formData, setFormData] = useState({
         dominio_id: '',
@@ -10,8 +18,11 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
         quantidade_horas_tecnicas: 1,
         status: 'pendente',
         suporte_id: '',
+        created_at: '',
     });
+    const [customDate, setCustomDate] = useState(false);
     const [domains, setDomains] = useState([]);
+    const [suportes, setSuportes] = useState([]);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
 
@@ -27,14 +38,21 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
                     .catch(err => {
                         console.error("Erro ao buscar domínios:", err);
                     });
-            } else if (demand?.dominio_id) {
-                // Editing existing demand — fetch all domains to populate select
+            } else {
+                // Editing existing demand or standalone create — fetch domains to populate select
                 axiosClient.get('/dominios?per_page=200')
                     .then(({ data }) => setDomains(data.data))
                     .catch(() => { });
             }
+
+            // Se não veio suporteId pré-definido, busca lista de chamados
+            if (!suporteId) {
+                axiosClient.get('/suportes?per_page=100')
+                    .then(({ data }) => setSuportes(data.data || []))
+                    .catch(() => { });
+            }
         }
-    }, [isOpen, clienteId, demand]);
+    }, [isOpen, clienteId, demand, suporteId]);
 
     useEffect(() => {
         if (demand) {
@@ -46,7 +64,9 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
                 quantidade_horas_tecnicas: demand.quantidade_horas_tecnicas || 1,
                 status: demand.status || 'pendente',
                 suporte_id: demand.suporte_id || suporteId || '',
+                created_at: toDatetimeLocal(demand.created_at) || '',
             });
+            setCustomDate(Boolean(demand.created_at));
         } else {
             setFormData({
                 dominio_id: dominioId || '',
@@ -56,10 +76,12 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
                 quantidade_horas_tecnicas: 1,
                 status: 'pendente',
                 suporte_id: suporteId || '',
+                created_at: '',
             });
+            setCustomDate(false);
         }
         setErrors({});
-    }, [demand, isOpen, suporteId]);
+    }, [demand, isOpen, suporteId, dominioId]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -74,6 +96,10 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
 
     const validate = () => {
         const newErrors = {};
+
+        if (!formData.suporte_id) {
+            newErrors.suporte_id = 'Chamado de suporte é obrigatório';
+        }
 
         if (!formData.dominio_id) {
             newErrors.dominio_id = 'Domínio é obrigatório';
@@ -100,7 +126,11 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
 
         setLoading(true);
         try {
-            await onSave(formData);
+            const payload = { ...formData };
+            if (!customDate || !payload.created_at) {
+                delete payload.created_at;
+            }
+            await onSave(payload);
             onClose();
         } catch (error) {
             console.error("Erro ao salvar demanda:", error);
@@ -130,6 +160,39 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {!suporteId && (
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Chamado de Suporte *
+                                </label>
+                                <select
+                                    name="suporte_id"
+                                    value={formData.suporte_id}
+                                    onChange={(e) => {
+                                        const supId = e.target.value;
+                                        const sup = suportes.find(s => String(s.id) === String(supId));
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            suporte_id: supId,
+                                            dominio_id: sup?.dominio_id || prev.dominio_id,
+                                        }));
+                                    }}
+                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.suporte_id ? 'border-red-500' : 'border-gray-300'}`}
+                                    disabled={loading}
+                                >
+                                    <option value="">Selecione um chamado</option>
+                                    {suportes.map(s => (
+                                        <option key={s.id} value={s.id}>
+                                            #{s.id} — {s.cliente?.nome || 'Cliente'} {s.mensagem ? `(${s.mensagem.substring(0, 40)}...)` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.suporte_id && (
+                                    <p className="text-red-500 text-xs mt-1">{errors.suporte_id}</p>
+                                )}
+                            </div>
+                        )}
+
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Domínio *
@@ -246,6 +309,54 @@ export default function DemandModal({ isOpen, onClose, onSave, demand, suporteId
                                 <option value="concluido">Concluído</option>
                                 <option value="cancelado">Cancelado</option>
                             </select>
+                        </div>
+
+                        {/* Data de Criação (Poder Admin para retroativo) */}
+                        <div className="md:col-span-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Data de Criação
+                                </label>
+                                <label className="flex items-center text-xs text-gray-600 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={customDate}
+                                        onChange={(e) => {
+                                            const checked = e.target.checked;
+                                            setCustomDate(checked);
+                                            if (!checked) {
+                                                setFormData(prev => ({ ...prev, created_at: '' }));
+                                            } else if (!formData.created_at) {
+                                                setFormData(prev => ({ ...prev, created_at: toDatetimeLocal(new Date()) }));
+                                            }
+                                        }}
+                                        className="mr-1.5 h-4 w-4 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                                    />
+                                    Definir data retroativa / específica
+                                </label>
+                            </div>
+
+                            {customDate ? (
+                                <div>
+                                    <input
+                                        type="datetime-local"
+                                        name="created_at"
+                                        value={formData.created_at || ''}
+                                        onChange={handleChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm bg-white"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        A demanda será registrada no sistema com esta data e hora (útil para relatórios e prestação de contas retroativos).
+                                    </p>
+                                </div>
+                            ) : (
+                                <p className="text-xs text-gray-500">
+                                    Será registrada automaticamente com a <strong>data e hora atual</strong> do sistema.
+                                </p>
+                            )}
                         </div>
                     </div>
 

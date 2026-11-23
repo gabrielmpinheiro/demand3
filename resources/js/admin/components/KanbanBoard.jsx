@@ -265,6 +265,7 @@ export default function KanbanBoard() {
                 onClose={() => setModalOpen(false)}
                 onSave={handleSave}
                 demand={currentDemand}
+                suporteId={selectedSuporteId || undefined}
             />
         </div>
     );

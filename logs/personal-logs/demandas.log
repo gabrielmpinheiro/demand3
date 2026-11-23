@@ -126,3 +126,4 @@
 [2026-03-24 13:31:08] [INFO] Suporte concluído automaticamente {"suporte_id":14,"trigger_demanda_id":29}
 [2026-03-24 13:31:08] [INFO] Cobrança de chamado gerada {"suporte_id":14,"valor_total":2200,"demandas_cobradas":3,"vencimento":"2026-04-08"}
 [2026-03-24 13:31:08] [INFO] Demanda atualizada com sucesso {"id":29,"changes":{"status":"concluido"}}
+[2026-11-23 12:16:32] [INFO] Demanda criada com sucesso {"id":31,"titulo":"teste demanda"}
